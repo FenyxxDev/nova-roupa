@@ -13,6 +13,7 @@ import br.com.novaroupa.model.Usuario;
 import br.com.novaroupa.repository.LoteRetalhoRepository;
 import br.com.novaroupa.repository.PropostaNegociacaoRepository;
 import br.com.novaroupa.repository.UsuarioRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,7 @@ class PropostaNegociacaoServiceTests {
     @Mock PropostaNegociacaoRepository propostaRepository;
     @Mock LoteRetalhoRepository loteRepository;
     @Mock UsuarioRepository usuarioRepository;
+    @Mock ApplicationEventPublisher eventPublisher;
     private PropostaNegociacaoService service;
     private Usuario vendedor;
     private Usuario comprador;
@@ -45,7 +47,7 @@ class PropostaNegociacaoServiceTests {
     @BeforeEach
     void setUp() {
         service = new PropostaNegociacaoService(propostaRepository, loteRepository, usuarioRepository,
-                new PropostaValidacaoService());
+                new PropostaValidacaoService(), eventPublisher);
         vendedor = new Usuario("vendedor-api", TipoPerfil.VENDEDOR);
         comprador = new Usuario("comprador-api", TipoPerfil.COMPRADOR);
         lote = new LoteRetalho(vendedor, TipoTecido.ALGODAO, 10.0, "Azul", "Recife");
@@ -156,6 +158,7 @@ class PropostaNegociacaoServiceTests {
         assertThat(response.status()).isEqualTo(StatusPropostaNegociacao.ACEITA);
         assertThat(lote.getStatus()).isEqualTo(StatusLote.FINALIZADO);
         verify(loteRepository).save(lote);
+        verify(eventPublisher).publishEvent(any(PropostaAceitaEvent.class));
     }
 
     @Test
@@ -166,6 +169,7 @@ class PropostaNegociacaoServiceTests {
         var response = service.atualizarStatus(1L, dados, "vendedor-api");
         assertThat(response.status()).isEqualTo(StatusPropostaNegociacao.RECUSADA);
         assertThat(lote.getStatus()).isEqualTo(StatusLote.DISPONIVEL);
+        verify(eventPublisher, never()).publishEvent(any(PropostaAceitaEvent.class));
     }
 
     @Test
