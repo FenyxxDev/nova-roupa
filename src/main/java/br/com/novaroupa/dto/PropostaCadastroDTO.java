@@ -2,11 +2,19 @@ package br.com.novaroupa.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-/** Dados enviados pelo comprador para registrar interesse em um lote. */
+/**
+ * Dados enviados pelo comprador para registrar interesse em um lote.
+ * Valor ofertado e quantidade solicitada alimentam as regras de preço e volume do lote.
+ */
 public record PropostaCadastroDTO(
         @NotNull Long loteId,
         @NotBlank(message = "mensagem não pode estar vazia") @Size(max = 2000) String mensagem,
-        @Size(max = 30) String telefoneContato) {
+        @Size(max = 30) String telefoneContato,
+        @NotNull(message = "valorOfertado não pode estar vazio")
+        @Positive(message = "valorOfertado deve ser maior que zero") Double valorOfertado,
+        @NotNull(message = "quantidadeKgSolicitada não pode estar vazia")
+        @Positive(message = "quantidadeKgSolicitada deve ser maior que zero") Double quantidadeKgSolicitada) {
 }

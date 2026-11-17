@@ -48,6 +48,7 @@ class EntityLifecycleTests {
         lote.setTipoTecido(TipoTecido.JEANS);
         lote.setPesoKg(20.0);
         lote.setMetragemAproximada(30.0);
+        lote.setPrecoBaseKg(35.0);
         lote.setCorPredominante("Preto");
         lote.setDescricao("Retalhos selecionados");
         lote.setFotosUrls("https://example.org/foto.jpg");
@@ -57,6 +58,7 @@ class EntityLifecycleTests {
         assertThat(lote.getTipoTecido()).isEqualTo(TipoTecido.JEANS);
         assertThat(lote.getPesoKg()).isEqualTo(20.0);
         assertThat(lote.getMetragemAproximada()).isEqualTo(30.0);
+        assertThat(lote.getPrecoBaseKg()).isEqualTo(35.0);
         assertThat(lote.getCorPredominante()).isEqualTo("Preto");
         assertThat(lote.getDescricao()).isEqualTo("Retalhos selecionados");
         assertThat(lote.getFotosUrls()).isEqualTo("https://example.org/foto.jpg");
@@ -69,7 +71,8 @@ class EntityLifecycleTests {
         Usuario vendedor = new Usuario("loja", TipoPerfil.VENDEDOR);
         Usuario comprador = new Usuario("comprador", TipoPerfil.COMPRADOR);
         LoteRetalho lote = new LoteRetalho(vendedor, TipoTecido.VISCOSE, 8.0, "Verde", "Recife");
-        PropostaNegociacao proposta = new PropostaNegociacao(lote, comprador, "Tenho interesse", "81999990000");
+        PropostaNegociacao proposta =
+                new PropostaNegociacao(lote, comprador, "Tenho interesse", "81999990000", 150.0, 3.0);
         proposta.setStatus(null);
         proposta.inicializarValoresPadrao();
 
@@ -88,6 +91,8 @@ class EntityLifecycleTests {
         assertThat(proposta.getComprador()).isSameAs(comprador);
         assertThat(proposta.getMensagem()).isEqualTo("Mensagem atualizada");
         assertThat(proposta.getTelefoneContato()).isEqualTo("81900000000");
+        assertThat(proposta.getValorOfertado()).isEqualTo(150.0);
+        assertThat(proposta.getQuantidadeKg()).isEqualTo(3.0);
         assertThat(proposta.getStatus()).isEqualTo(StatusPropostaNegociacao.CONCLUIDA);
     }
 
@@ -97,7 +102,7 @@ class EntityLifecycleTests {
         Usuario avaliado = new Usuario("vendedor", TipoPerfil.VENDEDOR);
         PropostaNegociacao proposta = new PropostaNegociacao(
                 new LoteRetalho(avaliado, TipoTecido.JEANS, 5.0, "Cinza", "Recife"),
-                avaliador, null, null);
+                avaliador, null, null, 80.0, 2.0);
         AvaliacaoParceiro avaliacao = new AvaliacaoParceiro(proposta, avaliador, avaliado, 5, "Ótimo parceiro");
         avaliacao.inicializarDataCriacao();
 

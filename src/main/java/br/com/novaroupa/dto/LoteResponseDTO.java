@@ -12,6 +12,7 @@ public record LoteResponseDTO(
         TipoTecido tipoTecido,
         Double pesoKg,
         Double metragemAproximada,
+        Double precoBaseKg,
         String corPredominante,
         String descricao,
         String fotosUrls,

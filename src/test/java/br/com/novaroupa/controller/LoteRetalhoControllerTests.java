@@ -48,6 +48,7 @@ class LoteRetalhoControllerTests {
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.vendedor").value("vendedor"))
                 .andExpect(jsonPath("$.tipoTecido").value("ALGODAO"))
+                .andExpect(jsonPath("$.precoBaseKg").value(35.0))
                 .andExpect(jsonPath("$.status").value("DISPONIVEL"))
                 .andReturn();
 
@@ -114,6 +115,7 @@ class LoteRetalhoControllerTests {
                   "tipoTecido":"ALGODAO",
                   "pesoKg":4.5,
                   "metragemAproximada":12.0,
+                  "precoBaseKg":35.0,
                   "corPredominante":"Azul",
                   "descricao":"Retalhos de algodão",
                   "fotosUrls":"https://exemplo.test/foto.jpg",

@@ -50,7 +50,7 @@ class DashboardImpactoControllerTests {
         salvarLote(vendedor, TipoTecido.JEANS, 150.5, StatusLote.DOADO);
         salvarLote(vendedor, TipoTecido.VISCOSE, 12.0, StatusLote.DISPONIVEL);
         PropostaNegociacao proposta = propostaRepository.save(
-                new PropostaNegociacao(algodao, comprador, "negociação concluída", null));
+                new PropostaNegociacao(algodao, comprador, "negociação concluída", null, 180.0, 25.0));
         proposta.setStatus(StatusPropostaNegociacao.CONCLUIDA);
         propostaRepository.save(proposta);
 

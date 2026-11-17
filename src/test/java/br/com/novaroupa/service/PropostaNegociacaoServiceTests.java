@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +44,8 @@ class PropostaNegociacaoServiceTests {
 
     @BeforeEach
     void setUp() {
-        service = new PropostaNegociacaoService(propostaRepository, loteRepository, usuarioRepository);
+        service = new PropostaNegociacaoService(propostaRepository, loteRepository, usuarioRepository,
+                new PropostaValidacaoService());
         vendedor = new Usuario("vendedor-api", TipoPerfil.VENDEDOR);
         comprador = new Usuario("comprador-api", TipoPerfil.COMPRADOR);
         lote = new LoteRetalho(vendedor, TipoTecido.ALGODAO, 10.0, "Azul", "Recife");
@@ -53,21 +55,23 @@ class PropostaNegociacaoServiceTests {
     }
 
     private PropostaNegociacao propostaPendente() {
-        return new PropostaNegociacao(lote, comprador, "Interesse", null);
+        return new PropostaNegociacao(lote, comprador, "Interesse", null, 150.0, 4.0);
     }
 
     @Test
     void createsProposalForAvailableLot() {
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", "81999999999");
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", "81999999999", 150.0, 4.0);
         when(loteRepository.findById(1L)).thenReturn(Optional.of(lote));
         var response = service.criar(dados, "comprador-api");
         assertThat(response.mensagem()).isEqualTo("Tenho interesse");
         assertThat(response.status()).isEqualTo(StatusPropostaNegociacao.PENDENTE);
+        assertThat(response.valorOfertado()).isEqualTo(150.0);
+        assertThat(response.quantidadeKg()).isEqualTo(4.0);
     }
 
     @Test
     void rejectsProposalWhenLotIsUnavailable() {
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null);
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 150.0, 4.0);
         lote.setStatus(StatusLote.FINALIZADO);
         when(loteRepository.findById(1L)).thenReturn(Optional.of(lote));
         assertThatThrownBy(() -> service.criar(dados, "comprador-api"))
@@ -77,7 +81,7 @@ class PropostaNegociacaoServiceTests {
 
     @Test
     void rejectsProposalWhenLotDoesNotExist() {
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(99L, "Tenho interesse", null);
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(99L, "Tenho interesse", null, 150.0, 4.0);
         when(loteRepository.findById(99L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.criar(dados, "comprador-api"))
                 .isInstanceOf(ResponseStatusException.class)
@@ -86,7 +90,7 @@ class PropostaNegociacaoServiceTests {
 
     @Test
     void rejectsProposalFromTheLotOwner() {
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null);
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 150.0, 5.0);
         LoteRetalho loteDoProprioComprador = new LoteRetalho(comprador, TipoTecido.ALGODAO, 5.0, "Verde", "Recife");
         when(loteRepository.findById(1L)).thenReturn(Optional.of(loteDoProprioComprador));
         assertThatThrownBy(() -> service.criar(dados, "comprador-api"))
@@ -96,11 +100,34 @@ class PropostaNegociacaoServiceTests {
 
     @Test
     void rejectsProposalWhenLocalProfileIsMissing() {
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null);
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 150.0, 4.0);
         when(usuarioRepository.findByUsername("desaparecido-api")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.criar(dados, "desaparecido-api"))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Perfil local não encontrado");
+    }
+
+    @Test
+    void rejectsProposalBelowMinimumValueWithoutSaving() {
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 60.0, 4.0);
+        lote.setPrecoBaseKg(20.0);
+        when(loteRepository.findById(1L)).thenReturn(Optional.of(lote));
+
+        assertThatThrownBy(() -> service.criar(dados, "comprador-api"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Valor ofertado abaixo de 50% do valor base do lote");
+        verify(propostaRepository, never()).save(any());
+    }
+
+    @Test
+    void rejectsProposalAboveLotWeightWithoutSaving() {
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 150.0, 12.0);
+        when(loteRepository.findById(1L)).thenReturn(Optional.of(lote));
+
+        assertThatThrownBy(() -> service.criar(dados, "comprador-api"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Quantidade solicitada excede o peso disponível do lote");
+        verify(propostaRepository, never()).save(any());
     }
 
     @Test
