@@ -11,6 +11,7 @@ import br.com.novaroupa.model.Usuario;
 import br.com.novaroupa.repository.LoteRetalhoRepository;
 import br.com.novaroupa.repository.PropostaNegociacaoRepository;
 import br.com.novaroupa.repository.UsuarioRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -27,14 +28,17 @@ public class PropostaNegociacaoService {
     private final LoteRetalhoRepository loteRepository;
     private final UsuarioRepository usuarioRepository;
     private final PropostaValidacaoService validacaoService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PropostaNegociacaoService(PropostaNegociacaoRepository propostaRepository,
                                      LoteRetalhoRepository loteRepository, UsuarioRepository usuarioRepository,
-                                     PropostaValidacaoService validacaoService) {
+                                     PropostaValidacaoService validacaoService,
+                                     ApplicationEventPublisher eventPublisher) {
         this.propostaRepository = propostaRepository;
         this.loteRepository = loteRepository;
         this.usuarioRepository = usuarioRepository;
         this.validacaoService = validacaoService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -92,7 +96,21 @@ public class PropostaNegociacaoService {
             loteRepository.save(lote);
         }
         proposta.setStatus(dados.status());
-        return PropostaResponseDTO.de(propostaRepository.save(proposta));
+        PropostaNegociacao salva = propostaRepository.save(proposta);
+        if (dados.status() == StatusPropostaNegociacao.ACEITA) {
+            publicarEventoAceite(salva);
+        }
+        return PropostaResponseDTO.de(salva);
+    }
+
+    private void publicarEventoAceite(PropostaNegociacao proposta) {
+        LoteRetalho lote = proposta.getLote();
+        Usuario vendedor = lote.getVendedor();
+        Usuario comprador = proposta.getComprador();
+        eventPublisher.publishEvent(new PropostaAceitaEvent(
+                comprador.getEmail(), comprador.getNomeCompleto(), lote.getTipoTecido().name(),
+                lote.getId(), proposta.getValorOfertado(), proposta.getQuantidadeKg(), lote.getLocalizacao(),
+                vendedor.getNomeCompleto(), vendedor.getEmail(), vendedor.getTelefoneContato()));
     }
 
     private Usuario usuario(String username) {

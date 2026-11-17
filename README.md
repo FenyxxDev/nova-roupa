@@ -64,6 +64,13 @@ Para endpoints protegidos, envie `Authorization: Bearer <token>`. As respostas d
 | `JWT_SECRET` | vazio | Obrigatório fora dos profiles `dev`/`test`; mínimo 32 bytes para HS256 |
 | `JWT_EXPIRATION_MS` | `3600000` | Validade do JWT em milissegundos |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | Origens separadas por vírgulas permitidas para `/api/**` |
+| `MAIL_HOST` | `localhost` | Host do servidor SMTP |
+| `MAIL_PORT` | `25` | Porta SMTP |
+| `MAIL_USERNAME` / `MAIL_PASSWORD` | vazio | Credenciais SMTP; forneça por ambiente/secret |
+| `MAIL_SMTP_AUTH` | `false` | Ativa autenticação SMTP |
+| `MAIL_SMTP_STARTTLS_ENABLE` | `false` | Ativa STARTTLS |
+| `MAIL_FROM` | `no-reply@novaroupa.local` | Endereço remetente das notificações |
+| `MAIL_HEALTH_ENABLED` | `false` | Inclui o estado SMTP na health check do Actuator |
 | `LDAP_URL` | `ldap://localhost:389` | URL do diretório no profile `ldap` |
 | `LDAP_BASE` | `dc=example,dc=org` | Base DN do diretório |
 | `LDAP_USER_DN_PATTERN` | `uid={0},ou=people` | Padrão DN do utilizador |
@@ -71,6 +78,8 @@ Para endpoints protegidos, envie `Authorization: Bearer <token>`. As respostas d
 | `LDAP_GROUP_SEARCH_FILTER` | `(member={0})` | Filtro de grupos |
 
 Em produção, use `SPRING_PROFILES_ACTIVE=ldap`, forneça um `JWT_SECRET` aleatório com pelo menos 32 bytes e configure as origens CORS e os parâmetros LDAP reais. Nunca publique segredos em `.env` versionados.
+
+Ao aceitar uma proposta, o backend publica um evento transacional e envia, após o commit, uma notificação assíncrona ao e-mail do comprador com valor, quantidade, local de retirada e contatos do vendedor. Configure as variáveis `MAIL_*` para usar um servidor SMTP; sem e-mail cadastrado para o comprador, o envio é ignorado e registrado no log.
 
 O health indicator LDAP do Actuator fica desativado nos profiles `dev`/`test` e é ativado automaticamente no profile `ldap`, evitando que a ausência de um diretório local marque o backend de desenvolvimento como indisponível.
 
