@@ -11,6 +11,7 @@ public record LoteCadastroDTO(
         @NotNull TipoTecido tipoTecido,
         @NotNull @Positive Double pesoKg,
         @Positive Double metragemAproximada,
+        @Positive Double precoBaseKg,
         @NotBlank @Size(max = 60) String corPredominante,
         @Size(max = 1000) String descricao,
         @Size(max = 2000) String fotosUrls,
