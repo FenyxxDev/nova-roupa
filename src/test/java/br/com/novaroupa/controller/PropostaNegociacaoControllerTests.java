@@ -41,12 +41,12 @@ class PropostaNegociacaoControllerTests {
     private static PropostaResponseDTO resposta(StatusPropostaNegociacao status) {
         LocalDateTime agora = LocalDateTime.now();
         return new PropostaResponseDTO(1L, 2L, "comprador-api", "vendedor-api",
-                "Tenho interesse", "81999999999", status, agora, agora);
+                "Tenho interesse", "81999999999", 150.0, 4.0, status, agora, agora);
     }
 
     @Test
     void criarDevolveCreatedComCorpoRetornadoPeloServico() {
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(2L, "Tenho interesse", "81999999999");
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(2L, "Tenho interesse", "81999999999", 150.0, 4.0);
         when(service.criar(dados, "comprador-api")).thenReturn(resposta(StatusPropostaNegociacao.PENDENTE));
 
         ResponseEntity<PropostaResponseDTO> response = controller.criar(dados, authentication);
@@ -54,6 +54,8 @@ class PropostaNegociacaoControllerTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().status()).isEqualTo(StatusPropostaNegociacao.PENDENTE);
+        assertThat(response.getBody().valorOfertado()).isEqualTo(150.0);
+        assertThat(response.getBody().quantidadeKg()).isEqualTo(4.0);
         verify(service).criar(dados, "comprador-api");
     }
 
