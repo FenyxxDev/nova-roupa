@@ -42,6 +42,14 @@ public class PropostaNegociacao {
     @Column(name = "telefone_contato")
     private String telefoneContato;
 
+    /** Valor oferecido pelo comprador pelo lote, em reais. */
+    @Column(name = "valor_ofertado")
+    private Double valorOfertado;
+
+    /** Quantidade em quilos solicitada pelo comprador. */
+    @Column(name = "quantidade_kg")
+    private Double quantidadeKg;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -60,11 +68,13 @@ public class PropostaNegociacao {
     }
 
     public PropostaNegociacao(LoteRetalho lote, Usuario comprador, String mensagem,
-                              String telefoneContato) {
+                              String telefoneContato, Double valorOfertado, Double quantidadeKg) {
         this.lote = lote;
         this.comprador = comprador;
         this.mensagem = mensagem;
         this.telefoneContato = telefoneContato;
+        this.valorOfertado = valorOfertado;
+        this.quantidadeKg = quantidadeKg;
         this.status = StatusPropostaNegociacao.PENDENTE;
     }
 
@@ -117,6 +127,14 @@ public class PropostaNegociacao {
 
     public String getTelefoneContato() {
         return telefoneContato;
+    }
+
+    public Double getValorOfertado() {
+        return valorOfertado;
+    }
+
+    public Double getQuantidadeKg() {
+        return quantidadeKg;
     }
 
     public void setTelefoneContato(String telefoneContato) {

@@ -52,6 +52,11 @@ public class LoteRetalho {
     @Column(name = "metragem_aproximada")
     private Double metragemAproximada;
 
+    /** Preço de referência por quilo, base do cálculo de valor mínimo das propostas. Opcional. */
+    @Positive
+    @Column(name = "preco_base_kg")
+    private Double precoBaseKg;
+
     @NotBlank
     @Size(max = 60)
     @Column(name = "cor_predominante", nullable = false, length = 60)
@@ -139,6 +144,14 @@ public class LoteRetalho {
 
     public void setMetragemAproximada(Double metragemAproximada) {
         this.metragemAproximada = metragemAproximada;
+    }
+
+    public Double getPrecoBaseKg() {
+        return precoBaseKg;
+    }
+
+    public void setPrecoBaseKg(Double precoBaseKg) {
+        this.precoBaseKg = precoBaseKg;
     }
 
     public String getCorPredominante() {
