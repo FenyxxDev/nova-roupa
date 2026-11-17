@@ -34,7 +34,7 @@ public class LoteRetalhoService {
                 dados.corPredominante(), dados.localizacao());
         lote.setMetragemAproximada(dados.metragemAproximada());
         lote.setPrecoBaseKg(dados.precoBaseKg());
-        lote.setDescricao(dados.descricao());
+        lote.setDescricao(DescricaoLoteSanitizer.sanitize(dados.descricao()));
         lote.setFotosUrls(dados.fotosUrls());
 
         LoteRetalho salvo = loteRetalhoRepository.save(lote);
