@@ -15,14 +15,19 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
-@TestPropertySource(properties = "spring.datasource.url=jdbc:sqlite:target/test-extensao.db")
+@TestPropertySource(properties = {
+        "spring.datasource.url=jdbc:sqlite:target/test-extensao.db",
+        "app.cors.allowed-origins=http://localhost:4200,https://homolog.novaroupa.test"
+})
 class LoteRetalhoControllerTests {
 
     @Autowired
@@ -50,11 +55,50 @@ class LoteRetalhoControllerTests {
                 .andExpect(jsonPath("$.tipoTecido").value("ALGODAO"))
                 .andExpect(jsonPath("$.precoBaseKg").value(35.0))
                 .andExpect(jsonPath("$.status").value("DISPONIVEL"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("X-Frame-Options", "DENY"))
                 .andReturn();
 
         Long id = ((Number) JsonPath.read(resultado.getResponse().getContentAsString(), "$.id")).longValue();
         assertThat(loteRetalhoRepository.findById(id)).isPresent();
         assertThat(loteRetalhoRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void descricaoComScriptEhHigienizadaAntesDeSerPersistida() throws Exception {
+        String token = obterToken("vendedor", "vendedor-demo-123");
+        String corpoMalicioso = corpoValido().replace("Retalhos de algodão",
+                "Retalhos <script>alert('xss')</script><b>seguros</b>");
+
+        MvcResult resultado = mockMvc.perform(post("/api/lotes")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoMalicioso))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.descricao").value("Retalhos seguros"))
+                .andReturn();
+
+        Long id = ((Number) JsonPath.read(resultado.getResponse().getContentAsString(), "$.id")).longValue();
+        assertThat(loteRetalhoRepository.findById(id).orElseThrow().getDescricao())
+                .isEqualTo("Retalhos seguros");
+    }
+
+    @Test
+    void preflightAceitaOrigemExplicitamenteConfiguradaDeHomologacao() throws Exception {
+        mockMvc.perform(options("/api/lotes")
+                        .header("Origin", "https://homolog.novaroupa.test")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://homolog.novaroupa.test"));
+    }
+
+    @Test
+    void preflightRejeitaOrigemNaoConfigurada() throws Exception {
+        mockMvc.perform(options("/api/lotes")
+                        .header("Origin", "https://malicioso.example")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 
     @Test
