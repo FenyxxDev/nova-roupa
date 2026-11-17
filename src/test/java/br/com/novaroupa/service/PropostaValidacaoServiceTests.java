@@ -6,6 +6,8 @@ import br.com.novaroupa.model.TipoPerfil;
 import br.com.novaroupa.model.TipoTecido;
 import br.com.novaroupa.model.Usuario;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -27,14 +29,6 @@ class PropostaValidacaoServiceTests {
     }
 
     @Test
-    void aceitaPropostaDentroDosLimitesDeVolumeEValor() {
-        LoteRetalho lote = lote(10.0, 20.0);
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 180.0, 4.0);
-
-        assertThatCode(() -> service.validar(lote, dados)).doesNotThrowAnyException();
-    }
-
-    @Test
     void rejeitaQuantidadeMaiorQueOPesoDisponivelDoLote() {
         LoteRetalho lote = lote(10.0, 20.0);
         PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 180.0, 10.5);
@@ -45,10 +39,18 @@ class PropostaValidacaoServiceTests {
         assertThat(excecao.getMessage()).contains("Quantidade solicitada excede o peso disponível do lote");
     }
 
-    @Test
-    void aceitaQuantidadeIgualAoPesoDisponivelDoLote() {
+    /** Casos limite aceitos: dentro dos limites, quantidade igual ao peso e valor exatamente em 50%. */
+    @ParameterizedTest(name = "valor {0} e quantidade {1} são aceitos")
+    @CsvSource({
+            "180.0, 4.0",
+            "180.0, 10.0",
+            "100.0, 4.0"
+    })
+    void aceitaPropostaNosCasosLimitrofes(double valorOfertado, double quantidadeKg) {
         LoteRetalho lote = lote(10.0, 20.0);
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 180.0, 10.0);
+        // Valor base do lote = 20 reais/kg * 10 kg = 200 reais; o limite mínimo aceito é 100 reais.
+        PropostaCadastroDTO dados = new PropostaCadastroDTO(
+                1L, "Tenho interesse", null, valorOfertado, quantidadeKg);
 
         assertThatCode(() -> service.validar(lote, dados)).doesNotThrowAnyException();
     }
@@ -62,15 +64,6 @@ class PropostaValidacaoServiceTests {
                 () -> service.validar(lote, dados), ResponseStatusException.class);
         assertThat(excecao.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(excecao.getMessage()).contains("Valor ofertado abaixo de 50% do valor base do lote");
-    }
-
-    @Test
-    void aceitaValorExatamenteNoLimiteDeCinquentaPorCento() {
-        LoteRetalho lote = lote(10.0, 20.0);
-        // Valor base do lote = 20 reais/kg * 10 kg = 200 reais; o limite mínimo aceito é 100 reais.
-        PropostaCadastroDTO dados = new PropostaCadastroDTO(1L, "Tenho interesse", null, 100.0, 4.0);
-
-        assertThatCode(() -> service.validar(lote, dados)).doesNotThrowAnyException();
     }
 
     @Test
