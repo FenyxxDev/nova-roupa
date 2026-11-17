@@ -33,13 +33,14 @@ public class LoteRetalhoService {
         LoteRetalho lote = new LoteRetalho(vendedor, dados.tipoTecido(), dados.pesoKg(),
                 dados.corPredominante(), dados.localizacao());
         lote.setMetragemAproximada(dados.metragemAproximada());
+        lote.setPrecoBaseKg(dados.precoBaseKg());
         lote.setDescricao(dados.descricao());
         lote.setFotosUrls(dados.fotosUrls());
 
         LoteRetalho salvo = loteRetalhoRepository.save(lote);
         return new LoteResponseDTO(salvo.getId(), vendedor.getUsername(), salvo.getTipoTecido(),
-                salvo.getPesoKg(), salvo.getMetragemAproximada(), salvo.getCorPredominante(),
-                salvo.getDescricao(), salvo.getFotosUrls(), salvo.getLocalizacao(), salvo.getStatus(),
-                salvo.getDataPublicacao());
+                salvo.getPesoKg(), salvo.getMetragemAproximada(), salvo.getPrecoBaseKg(),
+                salvo.getCorPredominante(), salvo.getDescricao(), salvo.getFotosUrls(),
+                salvo.getLocalizacao(), salvo.getStatus(), salvo.getDataPublicacao());
     }
 }

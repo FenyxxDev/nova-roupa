@@ -26,13 +26,15 @@ public class PropostaNegociacaoService {
     private final PropostaNegociacaoRepository propostaRepository;
     private final LoteRetalhoRepository loteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PropostaValidacaoService validacaoService;
 
     public PropostaNegociacaoService(PropostaNegociacaoRepository propostaRepository,
-                                     LoteRetalhoRepository loteRepository,
-                                     UsuarioRepository usuarioRepository) {
+                                     LoteRetalhoRepository loteRepository, UsuarioRepository usuarioRepository,
+                                     PropostaValidacaoService validacaoService) {
         this.propostaRepository = propostaRepository;
         this.loteRepository = loteRepository;
         this.usuarioRepository = usuarioRepository;
+        this.validacaoService = validacaoService;
     }
 
     @Transactional
@@ -43,12 +45,14 @@ public class PropostaNegociacaoService {
         if (lote.getStatus() != StatusLote.DISPONIVEL) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Lote não está disponível");
         }
+        validacaoService.validar(lote, dados);
         if (Objects.equals(lote.getVendedor().getId(), comprador.getId())
                 && lote.getVendedor().getUsername().equals(comprador.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vendedor não pode propor ao próprio lote");
         }
         PropostaNegociacao proposta = propostaRepository.save(new PropostaNegociacao(
-                lote, comprador, dados.mensagem(), dados.telefoneContato()));
+                lote, comprador, dados.mensagem(), dados.telefoneContato(),
+                dados.valorOfertado(), dados.quantidadeKgSolicitada()));
         return PropostaResponseDTO.de(proposta);
     }
 
