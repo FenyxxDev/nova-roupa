@@ -1,0 +1,31 @@
+# Produção: nenhum valor sensível tem predefinição; a aplicação falha ao arrancar sem as variáveis.
+spring:
+  datasource:
+    # Ex.: jdbc:sqlite:/data/nova-roupa.db (o driver SQLite é o único suportado hoje).
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.sqlite.JDBC}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+  sql:
+    init:
+      mode: always
+
+management:
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: ${MAIL_HEALTH_ENABLED:false}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  ldap:
+    # Obrigatório quando o profile ldap é combinado com prod (SPRING_PROFILES_ACTIVE=prod,ldap).
+    url: ${LDAP_URL}

@@ -1,0 +1,20 @@
+# Desenvolvimento local: SQLite em ficheiro e autenticação mock, sem dependências externas.
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:sqlite:extensao.db}
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+  sql:
+    init:
+      mode: always
+
+management:
+  health:
+    ldap:
+      enabled: false
+
+logging:
+  level:
+    br.com.novaroupa: DEBUG

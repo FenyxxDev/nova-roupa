@@ -1,0 +1,23 @@
+# Testes automatizados: base SQLite em memória partilhada entre as conexões do pool.
+spring:
+  datasource:
+    url: ${TEST_DATABASE_URL:jdbc:sqlite:file:novaroupa-test?mode=memory&cache=shared}
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: always
+
+management:
+  health:
+    ldap:
+      enabled: false
+    mail:
+      enabled: false
+
+app:
+  mail:
+    # Evita tentativas de SMTP reais durante os testes.
+    from: no-reply@novaroupa.test
