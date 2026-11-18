@@ -1,0 +1,145 @@
+<section class="container catalogo" aria-labelledby="titulo-catalogo">
+  <header class="catalogo__cabecalho">
+    <div>
+      <p class="selo selo--info">Vitrine pública</p>
+      <h1 id="titulo-catalogo">Catálogo de retalhos</h1>
+      <p class="texto-suave">
+        Filtre por tecido, cor, polo e faixa de peso. A grelha atualiza automaticamente, sem
+        recarregar a página.
+      </p>
+    </div>
+  </header>
+
+  <form class="cartao catalogo__filtros" [formGroup]="formulario" (ngSubmit)="carregar(0)">
+    <fieldset>
+      <legend class="catalogo__legenda">Filtros</legend>
+
+      <div class="grade grade--4">
+        <div class="campo">
+          <label class="campo__rotulo" for="filtro-tecido">Tecido</label>
+          <select id="filtro-tecido" formControlName="tipoTecido">
+            <option value="">Todos os tecidos</option>
+            @for (tecido of tecidos; track tecido) {
+              <option [value]="tecido">{{ rotuloTecido(tecido) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="filtro-cor">Cor predominante</label>
+          <input id="filtro-cor" type="search" formControlName="cor" placeholder="Ex.: azul" />
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="filtro-localizacao">Polo / cidade</label>
+          <input
+            id="filtro-localizacao"
+            type="search"
+            formControlName="localizacao"
+            placeholder="Ex.: São Paulo"
+          />
+        </div>
+
+        <div class="campo">
+          <span class="campo__rotulo">Peso (kg)</span>
+          <div class="catalogo__pesos">
+            <label class="visualmente-oculto" for="filtro-peso-min">Peso mínimo</label>
+            <input
+              id="filtro-peso-min"
+              type="number"
+              min="0"
+              step="0.5"
+              inputmode="decimal"
+              formControlName="pesoMin"
+              placeholder="mín."
+            />
+            <label class="visualmente-oculto" for="filtro-peso-max">Peso máximo</label>
+            <input
+              id="filtro-peso-max"
+              type="number"
+              min="0"
+              step="0.5"
+              inputmode="decimal"
+              formControlName="pesoMax"
+              placeholder="máx."
+            />
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="linha">
+      <button type="submit" class="botao botao--secundario">Atualizar agora</button>
+      @if (temFiltrosAtivos()) {
+        <button type="button" class="botao botao--discreto" (click)="limparFiltros()">
+          Limpar filtros
+        </button>
+      }
+    </div>
+  </form>
+
+  <p class="texto-pequeno texto-suave catalogo__resumo" aria-live="polite">
+    @if (carregando()) {
+      A carregar lotes…
+    } @else if (erro()) {
+      Não foi possível obter os lotes.
+    } @else {
+      {{ total() }} lote(s) encontrados.
+    }
+  </p>
+
+  @if (erro(); as mensagem) {
+    <div class="aviso aviso--erro" role="alert">
+      <p class="mb-0">{{ mensagem }}</p>
+      <button type="button" class="botao botao--secundario" (click)="carregar(pagina())">
+        Tentar novamente
+      </button>
+    </div>
+  } @else if (carregando()) {
+    <div class="grade grade--3" aria-hidden="true">
+      @for (esqueleto of [1, 2, 3]; track esqueleto) {
+        <div class="cartao catalogo__esqueleto"></div>
+      }
+    </div>
+  } @else if (lotes().length === 0) {
+    <div class="cartao catalogo__vazio">
+      <h2 class="cartao__titulo">Nenhum lote encontrado</h2>
+      <p class="texto-suave">
+        Ajuste os filtros ou limpe-os para ver todos os retalhos disponíveis neste momento.
+      </p>
+      <button type="button" class="botao botao--primario" (click)="limparFiltros()">
+        Limpar filtros
+      </button>
+    </div>
+  } @else {
+    <div class="grade grade--3 catalogo__grelha">
+      @for (lote of lotes(); track lote.id) {
+        <app-lote-card [lote]="lote" (negociar)="negociar($event)" />
+      }
+    </div>
+
+    @if (totalPaginas() > 1) {
+      <nav class="catalogo__paginacao" aria-label="Paginação do catálogo">
+        <button
+          type="button"
+          class="botao botao--secundario"
+          [disabled]="pagina() === 0"
+          (click)="paginaAnterior()"
+        >
+          Anterior
+        </button>
+        <span class="texto-pequeno texto-suave">
+          Página {{ pagina() + 1 }} de {{ totalPaginas() }}
+        </span>
+        <button
+          type="button"
+          class="botao botao--secundario"
+          [disabled]="pagina() + 1 >= totalPaginas()"
+          (click)="proximaPagina()"
+        >
+          Seguinte
+        </button>
+      </nav>
+    }
+  }
+</section>
