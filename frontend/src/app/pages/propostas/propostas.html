@@ -1,0 +1,147 @@
+<section class="container propostas" aria-labelledby="titulo-propostas">
+  <header class="propostas__cabecalho">
+    <div>
+      <p class="selo selo--info">Negociação</p>
+      <h1 id="titulo-propostas">Propostas e contrapropostas</h1>
+      <p class="texto-suave">
+        Acompanhe as ofertas recebidas nos seus lotes e as propostas que enviou. Uma
+        contraproposta é uma nova oferta sobre o mesmo lote, com o valor revisto.
+      </p>
+    </div>
+    <button type="button" class="botao botao--secundario" (click)="carregar()">
+      Atualizar
+    </button>
+  </header>
+
+  @if (podeVerRecebidas() || podeVerMinhas()) {
+    <div class="propostas__abas" role="tablist" aria-label="Origem das propostas">
+      @if (podeVerRecebidas()) {
+        <button
+          type="button"
+          role="tab"
+          class="botao botao--discreto"
+          [class.propostas__aba--ativa]="aba() === 'recebidas'"
+          [attr.aria-selected]="aba() === 'recebidas'"
+          (click)="selecionarAba('recebidas')"
+        >
+          Recebidas ({{ recebidas().length }})
+        </button>
+      }
+      @if (podeVerMinhas()) {
+        <button
+          type="button"
+          role="tab"
+          class="botao botao--discreto"
+          [class.propostas__aba--ativa]="aba() === 'minhas'"
+          [attr.aria-selected]="aba() === 'minhas'"
+          (click)="selecionarAba('minhas')"
+        >
+          Enviadas ({{ minhas().length }})
+        </button>
+      }
+    </div>
+  }
+
+  <p class="texto-pequeno texto-suave" aria-live="polite">
+    @if (carregando()) {
+      A carregar propostas…
+    } @else {
+      {{ propostasVisiveis().length }} proposta(s) nesta vista.
+    }
+  </p>
+
+  @if (erro(); as mensagem) {
+    <div class="aviso aviso--erro" role="alert">
+      <p class="mb-0">{{ mensagem }}</p>
+      <button type="button" class="botao botao--secundario" (click)="carregar()">
+        Tentar novamente
+      </button>
+    </div>
+  } @else if (!podeVerRecebidas() && !podeVerMinhas()) {
+    <div class="cartao propostas__vazio">
+      <h2 class="cartao__titulo">Sem acesso a propostas</h2>
+      <p class="texto-suave">
+        A sua conta não tem o papel de comprador nem de vendedor. Contacte o administrador para
+        rever as permissões.
+      </p>
+    </div>
+  } @else if (!carregando() && propostasVisiveis().length === 0) {
+    <div class="cartao propostas__vazio">
+      <h2 class="cartao__titulo">Nenhuma proposta nesta vista</h2>
+      <p class="texto-suave">
+        @if (aba() === 'recebidas') {
+          Quando alguém se interessar pelos seus lotes, a proposta aparece aqui para decidir.
+        } @else {
+          Escolha um lote na vitrine e envie a primeira proposta.
+        }
+      </p>
+    </div>
+  } @else {
+    <ul class="propostas__lista">
+      @for (proposta of propostasVisiveis(); track proposta.id) {
+        <li class="cartao propostas__item">
+          <header class="espaco-entre propostas__topo">
+            <div>
+              <h2 class="cartao__titulo">Proposta #{{ proposta.id }}</h2>
+              <p class="texto-pequeno texto-suave">
+                Lote #{{ proposta.loteId }} ·
+                {{ aba() === 'recebidas' ? 'de ' + proposta.comprador : 'para ' + proposta.vendedor }}
+                · {{ formatarDataHora(proposta.dataCriacao) }}
+              </p>
+            </div>
+            <span [class]="classeSelo(proposta.status)">{{ rotuloStatus(proposta.status) }}</span>
+          </header>
+
+          <dl class="propostas__dados">
+            <div>
+              <dt class="texto-pequeno texto-suave">Valor por kg</dt>
+              <dd>{{ formatarReais(proposta.valorOfertado) }}</dd>
+            </div>
+            <div>
+              <dt class="texto-pequeno texto-suave">Quantidade</dt>
+              <dd>{{ proposta.quantidadeKg }} kg</dd>
+            </div>
+            <div>
+              <dt class="texto-pequeno texto-suave">Total estimado</dt>
+              <dd>{{ formatarReais(proposta.valorOfertado * proposta.quantidadeKg) }}</dd>
+            </div>
+            @if (proposta.telefoneContato) {
+              <div>
+                <dt class="texto-pequeno texto-suave">Contacto</dt>
+                <dd>{{ proposta.telefoneContato }}</dd>
+              </div>
+            }
+          </dl>
+
+          <p class="propostas__mensagem">{{ proposta.mensagem }}</p>
+
+          @if (aba() === 'recebidas' && proposta.status === 'PENDENTE') {
+            <div class="linha propostas__acoes">
+              <button
+                type="button"
+                class="botao botao--secundario"
+                (click)="contrapor(proposta)"
+              >
+                Contraproposta
+              </button>
+              @for (acao of acoes; track acao.status) {
+                <button type="button" [class]="acao.classe" (click)="responder(proposta, acao.status)">
+                  {{ acao.rotulo }}
+                </button>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (loteDoModal(); as lote) {
+    <app-proposta-modal
+      [lote]="lote"
+      [propostaOriginal]="propostaEmResposta()"
+      (fechar)="fecharModal()"
+      (enviada)="aoEnviarContraproposta()"
+    />
+  }
+</section>
