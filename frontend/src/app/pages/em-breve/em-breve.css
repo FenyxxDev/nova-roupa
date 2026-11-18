@@ -1,0 +1,11 @@
+.em-breve {
+  padding: var(--esp-7) var(--esp-4);
+  max-width: 720px;
+}
+
+.em-breve .cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  align-items: flex-start;
+}
