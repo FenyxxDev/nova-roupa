@@ -1,0 +1,64 @@
+<div class="galeria">
+  <div
+    class="galeria__area"
+    [class.galeria__area--arrastando]="arrastando()"
+    [class.galeria__area--cheia]="!podeAdicionar()"
+    (dragover)="aoArrastarSobre($event)"
+    (dragleave)="aoSairDoArrasto($event)"
+    (drop)="aoSoltar($event)"
+  >
+    <p class="galeria__instrucao">
+      Arraste imagens para aqui ou
+      <button type="button" class="botao botao--secundario botao--discreto" (click)="abrirSeletor()">
+        escolha os ficheiros
+      </button>
+    </p>
+    <p class="campo__ajuda">
+      Até {{ maxFotos }} imagens (JPEG, PNG ou WebP) com 2 MB no máximo cada.
+      @if (podeAdicionar()) {
+        <span>Ainda pode adicionar {{ restantes() }}.</span>
+      } @else {
+        <span>Limite de imagens atingido. Remova uma para adicionar outra.</span>
+      }
+    </p>
+    <input
+      #entradaArquivos
+      class="visualmente-oculto"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      multiple
+      [attr.aria-label]="'Escolher imagens do lote (até ' + maxFotos + ')'"
+      (change)="aoSelecionar($event)"
+    />
+  </div>
+
+  @if (erro(); as mensagem) {
+    <p class="campo__erro" role="alert">{{ mensagem }}</p>
+  }
+
+  @if (fotos().length > 0) {
+    <ul class="galeria__lista" aria-label="Miniaturas das imagens do lote">
+      @for (foto of fotos(); track foto.id) {
+        <li class="galeria__item">
+          @if (foto.url) {
+            <img class="galeria__miniatura" [src]="foto.url" [alt]="'Pré-visualização de ' + foto.nome" />
+          } @else {
+            <span class="galeria__miniatura galeria__miniatura--texto" aria-hidden="true">IMG</span>
+          }
+          <div class="galeria__meta">
+            <span class="texto-pequeno">{{ foto.nome }}</span>
+            <span class="texto-pequeno texto-suave">{{ formatarTamanho(foto.tamanho) }}</span>
+          </div>
+          <button
+            type="button"
+            class="botao botao--discreto botao--perigo"
+            [attr.aria-label]="'Remover ' + foto.nome"
+            (click)="remover(foto.id)"
+          >
+            Remover
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>
