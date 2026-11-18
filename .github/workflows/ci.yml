@@ -63,3 +63,30 @@ jobs:
             target/surefire-reports/
             target/site/jacoco/
           if-no-files-found: warn
+
+  frontend-build:
+    name: Frontend build and unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Angular 22 exige ^22.22.3 || ^24.15.0 || >=26; a 22 LTS e a base mais antiga suportada.
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test -- --watch=false --no-progress
+
+      - name: Production build
+        run: npm run build -- --configuration production
