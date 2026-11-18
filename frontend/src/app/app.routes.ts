@@ -22,12 +22,7 @@ export const routes: Routes = [
   {
     path: 'catalogo',
     title: 'Catálogo de retalhos — Nova Roupa',
-    loadComponent: () => import('./pages/em-breve/em-breve').then((m) => m.EmBreve),
-    data: {
-      titulo: 'Catálogo de retalhos',
-      descricao:
-        'A vitrine com filtros reativos por tecido, cor e polo entra em produção na issue #42.',
-    },
+    loadComponent: () => import('./pages/catalogo/catalogo').then((m) => m.Catalogo),
   },
   {
     path: 'lotes/novo',
