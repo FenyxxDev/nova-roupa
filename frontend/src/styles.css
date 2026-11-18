@@ -426,6 +426,11 @@ legend {
   color: var(--cor-aviso);
 }
 
+.selo--sucesso {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
 .selo--erro {
   background: var(--cor-erro-fundo);
   color: var(--cor-erro);
