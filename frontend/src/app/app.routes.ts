@@ -54,6 +54,12 @@ export const routes: Routes = [
     },
   },
   {
+    path: 'propostas',
+    title: 'Propostas e contrapropostas — Nova Roupa',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/propostas/propostas').then((m) => m.Propostas),
+  },
+  {
     path: '**',
     title: 'Página não encontrada — Nova Roupa',
     loadComponent: () => import('./pages/em-breve/em-breve').then((m) => m.EmBreve),

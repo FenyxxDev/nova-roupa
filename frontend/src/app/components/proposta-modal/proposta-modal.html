@@ -1,0 +1,156 @@
+<div class="modal" (click)="aoClicarFundo($event)">
+  <div
+    class="modal__caixa"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="titulo-proposta-modal"
+  >
+    <header class="modal__cabecalho">
+      <div>
+        <p class="selo selo--info">
+          {{ modo() === 'contraproposta' ? 'Contraproposta' : 'Proposta direta' }}
+        </p>
+        <h2 id="titulo-proposta-modal" class="cartao__titulo">
+          {{ modo() === 'contraproposta' ? 'Responder com novo valor' : 'Enviar proposta' }}
+        </h2>
+      </div>
+      <button
+        type="button"
+        class="botao botao--discreto"
+        aria-label="Fechar o formulário de proposta"
+        (click)="fechar.emit()"
+      >
+        Fechar
+      </button>
+    </header>
+
+    <dl class="modal__lote">
+      <div>
+        <dt class="texto-pequeno texto-suave">Lote</dt>
+        <dd class="texto-pequeno">#{{ lote().id }} — {{ rotuloTecido(lote().tipoTecido) }}</dd>
+      </div>
+      <div>
+        <dt class="texto-pequeno texto-suave">Peso disponível</dt>
+        <dd class="texto-pequeno">{{ formatarPeso(lote().pesoKg) }}</dd>
+      </div>
+      <div>
+        <dt class="texto-pequeno texto-suave">Cor predominante</dt>
+        <dd class="texto-pequeno">{{ lote().corPredominante }}</dd>
+      </div>
+    </dl>
+
+    @if (propostaOriginal(); as original) {
+      <p class="aviso aviso--info texto-pequeno">
+        Oferta atual: {{ formatarReais(original.valorOfertado) }} por kg, por
+        {{ original.comprador }}. A contraproposta cria uma nova proposta sobre o mesmo lote.
+      </p>
+    }
+
+    <form class="pilha" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <div class="grade grade--2">
+        <div class="campo">
+          <label class="campo__rotulo" for="proposta-valor">
+            Valor ofertado por kg (R$)
+            <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            #campoValor
+            id="proposta-valor"
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputmode="decimal"
+            formControlName="valorOfertado"
+            [attr.aria-invalid]="campoInvalido('valorOfertado', 'required')"
+            [attr.aria-describedby]="
+              campoInvalido('valorOfertado', 'required') ? 'erro-proposta-valor' : null
+            "
+          />
+          @if (campoInvalido('valorOfertado', 'required')) {
+            <p id="erro-proposta-valor" class="campo__erro">Informe o valor que deseja pagar por kg.</p>
+          } @else if (campoInvalido('valorOfertado', 'min')) {
+            <p id="erro-proposta-valor" class="campo__erro">O valor deve ser maior que zero.</p>
+          }
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="proposta-quantidade">
+            Quantidade desejada (kg)
+            <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="proposta-quantidade"
+            type="number"
+            min="0.1"
+            step="0.1"
+            inputmode="decimal"
+            formControlName="quantidadeKgSolicitada"
+            [attr.aria-invalid]="campoInvalido('quantidadeKgSolicitada', 'required')"
+            [attr.aria-describedby]="
+              campoInvalido('quantidadeKgSolicitada', 'required')
+                ? 'erro-proposta-quantidade'
+                : null
+            "
+          />
+          @if (campoInvalido('quantidadeKgSolicitada', 'required')) {
+            <p id="erro-proposta-quantidade" class="campo__erro">
+              Informe quantos kg deseja deste lote.
+            </p>
+          } @else if (campoInvalido('quantidadeKgSolicitada', 'max')) {
+            <p id="erro-proposta-quantidade" class="campo__erro">
+              A quantidade não pode exceder o peso disponível ({{ formatarPeso(lote().pesoKg) }}).
+            </p>
+          } @else if (campoInvalido('quantidadeKgSolicitada', 'min')) {
+            <p id="erro-proposta-quantidade" class="campo__erro">
+              A quantidade mínima é 0,1 kg.
+            </p>
+          }
+        </div>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="proposta-mensagem">
+          Mensagem
+          <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <textarea
+          id="proposta-mensagem"
+          rows="4"
+          formControlName="mensagem"
+          placeholder="Explique o interesse e, na contraproposta, a justificativa do novo valor."
+          [attr.aria-describedby]="'ajuda-proposta-mensagem'"
+        ></textarea>
+        <p id="ajuda-proposta-mensagem" class="campo__ajuda">
+          Até 2000 caracteres. A justificativa é o que o vendedor lê primeiro.
+        </p>
+        @if (campoInvalido('mensagem', 'required')) {
+          <p class="campo__erro">Escreva uma mensagem para o vendedor.</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="proposta-telefone">Telefone de contacto (opcional)</label>
+        <input
+          id="proposta-telefone"
+          type="tel"
+          formControlName="telefoneContato"
+          placeholder="(11) 90000-0000"
+        />
+        <p class="campo__ajuda">Até 30 caracteres.</p>
+      </div>
+
+      @if (erro(); as mensagem) {
+        <p class="aviso aviso--erro" role="alert">{{ mensagem }}</p>
+      }
+
+      <div class="linha modal__acoes">
+        <button type="button" class="botao botao--secundario" (click)="fechar.emit()">
+          Cancelar
+        </button>
+        <button type="submit" class="botao botao--primario" [disabled]="enviando()">
+          {{ enviando() ? 'A enviar…' : modo() === 'contraproposta' ? 'Enviar contraproposta' : 'Enviar proposta' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
