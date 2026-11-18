@@ -134,3 +134,13 @@ docker compose down
 ```
 
 Para remover também os dados persistidos, execute `docker compose down -v`. O profile `dev` e as credenciais mock não são adequados a produção.
+
+### Frontend no Compose
+
+O serviço `frontend` constrói o SPA Angular em `frontend/` com um build multi-stage (`node:22-alpine` para gerar o bundle e `nginx:stable-alpine` como runtime) e serve o resultado em `http://localhost:4200` (porta configurável por `FRONTEND_PORT`). O Nginx:
+
+- aplica o roteamento do SPA (`try_files $uri $uri/ /index.html`), para que rotas do Angular Router funcionem em recarregamentos diretos;
+- faz proxy reverso de `/api/` para `http://nova-roupa-api:8080`, resolvido pela rede interna do Compose, mantendo o caminho original (o frontend consome `GET /api/lotes` e afins);
+- expõe `GET /healthz` para o `HEALTHCHECK` da imagem.
+
+Como o navegador conversa apenas com o Nginx e este encaminha `/api/` internamente, o fluxo não depende de CORS. Para expor a aplicação completa basta `docker compose up --build`; para parar, `docker compose down`.
