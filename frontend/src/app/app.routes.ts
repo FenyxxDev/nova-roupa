@@ -28,13 +28,9 @@ export const routes: Routes = [
     path: 'lotes/novo',
     title: 'Publicar lote — Nova Roupa',
     canActivate: [authGuard, roleGuard],
-    loadComponent: () => import('./pages/em-breve/em-breve').then((m) => m.EmBreve),
-    data: {
-      roles: ['ROLE_VENDEDOR', 'ROLE_ADMIN'],
-      titulo: 'Publicar lote de retalhos',
-      descricao:
-        'O formulário reativo de cadastro, com validação estrita e galeria de fotos, entra em produção nas issues #31, #47, #64 e #72.',
-    },
+    loadComponent: () =>
+      import('./pages/lote-cadastro/lote-cadastro').then((m) => m.LoteCadastro),
+    data: { roles: ['ROLE_VENDEDOR', 'ROLE_ADMIN'] },
   },
   {
     path: 'dashboard',
