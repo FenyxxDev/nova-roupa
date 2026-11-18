@@ -13,8 +13,9 @@ class DescricaoLoteSanitizerTests {
 
         String sanitizada = DescricaoLoteSanitizer.sanitize(descricao);
 
-        assertThat(sanitizada).isEqualTo("Retalhos algodão azul");
-        assertThat(sanitizada).doesNotContain("script", "onerror", "<", ">");
+        assertThat(sanitizada)
+                .isEqualTo("Retalhos algodão azul")
+                .doesNotContain("script", "onerror", "<", ">");
     }
 
     @Test
