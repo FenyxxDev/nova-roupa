@@ -142,4 +142,8 @@
       </nav>
     }
   }
+
+  @if (loteNegociado(); as lote) {
+    <app-proposta-modal [lote]="lote" (fechar)="fecharProposta()" />
+  }
 </section>

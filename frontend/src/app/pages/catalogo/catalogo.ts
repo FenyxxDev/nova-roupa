@@ -5,9 +5,11 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { LoteCard } from '../../components/lote-card/lote-card';
+import { PropostaModal } from '../../components/proposta-modal/proposta-modal';
 import { LoteConsulta } from '../../models/lote-consulta.model';
 import { FILTROS_VAZIOS, LoteFiltros } from '../../models/lote-filtros.model';
 import { rotuloTecido } from '../../models/lote-rotulos';
+import { LoteNegociavel } from '../../models/proposta.model';
 import { TipoTecido } from '../../models/tipo-tecido.model';
 import { AuthService } from '../../services/auth.service';
 import { LoteRetalhoService } from '../../services/lote-retalho.service';
@@ -26,7 +28,7 @@ export const DEBOUNCE_FILTROS_MS = 300;
  */
 @Component({
   selector: 'app-catalogo',
-  imports: [ReactiveFormsModule, LoteCard],
+  imports: [ReactiveFormsModule, LoteCard, PropostaModal],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
 })
@@ -56,6 +58,8 @@ export class Catalogo {
   readonly pagina = signal(0);
   readonly totalPaginas = signal(0);
   readonly filtros = signal<LoteFiltros>(FILTROS_VAZIOS);
+  /** Lote escolhido para o modal de proposta (issue #33); `null` fecha o modal. */
+  readonly loteNegociado = signal<LoteNegociavel | null>(null);
 
   constructor() {
     this.carregar(0);
@@ -140,17 +144,28 @@ export class Catalogo {
   /**
    * Abre o fluxo de proposta para o lote escolhido.
    *
-   * Anónimos são encaminhados para o login com `redirect`; com sessão ativa o
-   * pedido é confirmado por toast até o modal de propostas chegar (issue #33).
+   * Anónimos são encaminhados para o login com `redirect`; com sessão ativa, o
+   * modal de proposta (issues #33 e #65) abre já com o lote escolhido. Contas
+   * sem papel de comprador são avisadas porque `POST /api/propostas` exige
+   * `ROLE_COMPRADOR`.
    */
   negociar(lote: LoteConsulta): void {
     if (!this.autenticacao.estaAutenticado()) {
       void this.router.navigate(['/login'], { queryParams: { redirect: '/catalogo' } });
       return;
     }
-    this.notificacoes.info(
-      `Lote #${lote.id} selecionado. O envio de propostas entra em produção na issue #33.`,
-    );
+    if (!this.autenticacao.isComprador()) {
+      this.notificacoes.aviso(
+        'Apenas contas de comprador enviam propostas. As recebidas são geridas em Propostas.',
+      );
+      return;
+    }
+    this.loteNegociado.set(lote);
+  }
+
+  /** Fecha o modal de proposta sem enviar nada. */
+  fecharProposta(): void {
+    this.loteNegociado.set(null);
   }
 
   private paraFiltros(valores: {

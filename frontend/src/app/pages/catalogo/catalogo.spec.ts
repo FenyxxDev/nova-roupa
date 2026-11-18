@@ -47,6 +47,13 @@ function esperaDebounce(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, DEBOUNCE_FILTROS_MS + 80));
 }
 
+/** Prepara a sessão no `sessionStorage` antes de o serviço ser construído. */
+function sessao(roles: string[]): void {
+  sessionStorage.setItem('token', 'token-de-teste');
+  sessionStorage.setItem('usuarioLogado', 'utilizador');
+  sessionStorage.setItem('roles', JSON.stringify(roles));
+}
+
 describe('Catalogo', () => {
   let httpMock: HttpTestingController;
 
@@ -177,6 +184,43 @@ describe('Catalogo', () => {
     expect(navegar).toHaveBeenCalledWith(['/login'], {
       queryParams: { redirect: '/catalogo' },
     });
+  });
+
+  it('abre o modal de proposta para um comprador autenticado', () => {
+    sessao(['ROLE_COMPRADOR']);
+    const fixture = TestBed.createComponent(Catalogo);
+    httpMock
+      .expectOne((r) => r.url === URL_LOTES)
+      .flush(pagina([lote(7, TipoTecido.JEANS)], 0, 1, 1));
+    fixture.detectChanges();
+
+    fixture.componentInstance.negociar(lote(7, TipoTecido.JEANS));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.loteNegociado()?.id).toBe(7);
+    const modal = fixture.nativeElement.querySelector('app-proposta-modal');
+    expect(modal).not.toBeNull();
+
+    fixture.componentInstance.fecharProposta();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.loteNegociado()).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-proposta-modal')).toBeNull();
+  });
+
+  it('avisa quem não é comprador em vez de abrir o modal', () => {
+    sessao(['ROLE_VENDEDOR']);
+    const fixture = TestBed.createComponent(Catalogo);
+    httpMock
+      .expectOne((r) => r.url === URL_LOTES)
+      .flush(pagina([lote(8, TipoTecido.ALGODAO)], 0, 1, 1));
+    fixture.detectChanges();
+
+    fixture.componentInstance.negociar(lote(8, TipoTecido.ALGODAO));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.loteNegociado()).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-proposta-modal')).toBeNull();
   });
 });
 
