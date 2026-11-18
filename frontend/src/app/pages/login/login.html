@@ -1,0 +1,80 @@
+<section class="login" aria-labelledby="titulo-login">
+  <div class="login__cartao cartao">
+    <h1 id="titulo-login">Entrar na Nova Roupa</h1>
+    <p class="texto-suave">
+      Use as credenciais institucionais fornecidas pela equipe da plataforma.
+    </p>
+
+    @if (erro()) {
+      <div class="aviso aviso--erro" role="alert">
+        <span aria-hidden="true">!</span>
+        <span>{{ erro() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="formulario" (ngSubmit)="submeter()" novalidate class="mt-4">
+      <div class="campo">
+        <label class="campo__rotulo" for="username">
+          Usuário
+          <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          autocomplete="username"
+          required
+          [attr.aria-invalid]="username.invalid && username.touched"
+          [attr.aria-describedby]="username.invalid && username.touched ? 'erro-username' : null"
+        />
+        @if (username.invalid && username.touched) {
+          <p class="campo__erro" id="erro-username">
+            @if (username.errors?.['required']) {
+              Informe o usuário.
+            } @else if (username.errors?.['minlength']) {
+              O usuário deve ter ao menos 3 caracteres.
+            }
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="password">
+          Senha
+          <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <div class="campo__com-acao">
+          <input
+            id="password"
+            [type]="senhaVisivel() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            required
+            [attr.aria-invalid]="password.invalid && password.touched"
+            [attr.aria-describedby]="password.invalid && password.touched ? 'erro-password' : null"
+          />
+          <button
+            type="button"
+            class="botao botao--discreto"
+            (click)="alternarSenha()"
+            [attr.aria-pressed]="senhaVisivel()"
+          >
+            {{ senhaVisivel() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+        @if (password.invalid && password.touched) {
+          <p class="campo__erro" id="erro-password">Informe a senha.</p>
+        }
+      </div>
+
+      <button type="submit" class="botao botao--primario botao--bloco" [disabled]="aEnviar()">
+        {{ aEnviar() ? 'Entrando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <p class="texto-pequeno texto-suave mt-4 mb-0">
+      Ainda não tem conta? O cadastro de novos parceiros é feito pela equipe
+      administrativa. <a routerLink="/">Voltar ao início</a>
+    </p>
+  </div>
+</section>
