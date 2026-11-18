@@ -4,6 +4,7 @@ import br.com.novaroupa.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -71,7 +72,12 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * No profile ldap o AuthenticationManager é criado por {@link LdapAuthenticationConfig}; manter este
+     * bean ativo deixaria dois candidatos para a mesma injeção no AuthController.
+     */
     @Bean
+    @Profile("!ldap")
     AuthenticationManager authenticationManager(
             org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration configuration)
             throws Exception {
