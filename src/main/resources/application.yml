@@ -2,11 +2,8 @@ spring:
   application:
     name: nova-roupa-api
   profiles:
-    # O profile dev ativa usuários mock somente para desenvolvimento local.
+    # Sem SPRING_PROFILES_ACTIVE definido a aplicação sobe em dev, com contas mock e SQLite local.
     default: dev
-  datasource:
-    url: ${DATABASE_URL:jdbc:sqlite:extensao.db}
-    driver-class-name: org.sqlite.JDBC
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:25}
@@ -20,13 +17,8 @@ spring:
             enable: ${MAIL_SMTP_STARTTLS_ENABLE:false}
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
-    hibernate:
-      ddl-auto: update
     open-in-view: false
     defer-datasource-initialization: true
-  sql:
-    init:
-      mode: always
 
 server:
   port: ${SERVER_PORT:8080}
@@ -65,7 +57,7 @@ app:
     group-search-base: ${LDAP_GROUP_SEARCH_BASE:ou=groups}
     group-search-filter: ${LDAP_GROUP_SEARCH_FILTER:(member={0})}
   jwt:
-    # JWT_SECRET deve ser definido fora dos profiles dev/test.
+    # Vazio em dev/test (chave efémera por processo); obrigatório em prod.
     secret: ${JWT_SECRET:}
     expiration-ms: ${JWT_EXPIRATION_MS:3600000}
   security:
