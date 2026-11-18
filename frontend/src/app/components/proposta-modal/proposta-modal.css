@@ -1,0 +1,63 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: var(--esp-4);
+  background: rgb(15 32 25 / 62%);
+  overflow-y: auto;
+}
+
+.modal__caixa {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-5);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 24%);
+}
+
+.modal__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.modal__lote {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--esp-3);
+  margin: 0;
+  padding: var(--esp-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-primaria-clara);
+}
+
+.modal__lote dt {
+  margin: 0;
+}
+
+.modal__lote dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.modal__acoes {
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .modal {
+    place-items: start center;
+    padding: var(--esp-2);
+  }
+
+  .modal__caixa {
+    padding: var(--esp-4);
+  }
+}
