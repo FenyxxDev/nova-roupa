@@ -63,7 +63,7 @@ Para endpoints protegidos, envie `Authorization: Bearer <token>`. As respostas d
 | `SERVER_PORT` | `8080` | Porta HTTP |
 | `JWT_SECRET` | vazio | Obrigatório fora dos profiles `dev`/`test`; mínimo 32 bytes para HS256 |
 | `JWT_EXPIRATION_MS` | `3600000` | Validade do JWT em milissegundos |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | Origens separadas por vírgulas permitidas para `/api/**` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | Lista separada por vírgulas de origens exatas autorizadas para `/api/**`; wildcard não é permitido |
 | `MAIL_HOST` | `localhost` | Host do servidor SMTP |
 | `MAIL_PORT` | `25` | Porta SMTP |
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | vazio | Credenciais SMTP; forneça por ambiente/secret |
@@ -78,6 +78,8 @@ Para endpoints protegidos, envie `Authorization: Bearer <token>`. As respostas d
 | `LDAP_GROUP_SEARCH_FILTER` | `(member={0})` | Filtro de grupos |
 
 Em produção, use `SPRING_PROFILES_ACTIVE=ldap`, forneça um `JWT_SECRET` aleatório com pelo menos 32 bytes e configure as origens CORS e os parâmetros LDAP reais. Nunca publique segredos em `.env` versionados.
+
+O CORS aceita somente as origens exatas definidas em `CORS_ALLOWED_ORIGINS` (sem `*`). O padrão local é `http://localhost:4200`; no ambiente de homologação, configure a lista com `http://localhost:4200,https://<dominio-de-homologacao>` usando o domínio real da implantação. O backend também envia `X-Content-Type-Options: nosniff` e `X-Frame-Options: DENY`. Descrições de lotes são tratadas como texto simples: marcações HTML e conteúdo de `script`/`style` são removidos antes da persistência.
 
 Ao aceitar uma proposta, o backend publica um evento transacional e envia, após o commit, uma notificação assíncrona ao e-mail do comprador com valor, quantidade, local de retirada e contatos do vendedor. Configure as variáveis `MAIL_*` para usar um servidor SMTP; sem e-mail cadastrado para o comprador, o envio é ignorado e registrado no log.
 
