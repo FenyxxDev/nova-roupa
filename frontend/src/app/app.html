@@ -66,6 +66,15 @@
         @if (autenticado()) {
           <li>
             <a
+              routerLink="/propostas"
+              routerLinkActive="navegacao__link--ativo"
+              ariaCurrentWhenActive="page"
+              (click)="fecharMenu()"
+              >Propostas</a
+            >
+          </li>
+          <li>
+            <a
               routerLink="/perfil"
               routerLinkActive="navegacao__link--ativo"
               ariaCurrentWhenActive="page"
