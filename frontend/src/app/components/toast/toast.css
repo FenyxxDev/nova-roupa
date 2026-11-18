@@ -1,0 +1,124 @@
+:host {
+  position: fixed;
+  top: calc(var(--altura-cabecalho) + var(--esp-3));
+  right: var(--esp-4);
+  z-index: 1100;
+  display: block;
+  width: min(360px, calc(100vw - 2 * var(--esp-4)));
+  pointer-events: none;
+}
+
+.toast-regiao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--esp-2);
+  padding: var(--esp-3);
+  border: 1px solid var(--cor-borda);
+  border-left: 6px solid var(--cor-info);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-2);
+  pointer-events: auto;
+  animation: toast-entrada 180ms ease-out;
+}
+
+.toast--sucesso {
+  border-left-color: var(--cor-sucesso);
+}
+
+.toast--aviso {
+  border-left-color: var(--cor-aviso);
+}
+
+.toast--erro {
+  border-left-color: var(--cor-erro);
+}
+
+.toast--info {
+  border-left-color: var(--cor-info);
+}
+
+.toast__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--cor-info-fundo);
+  color: var(--cor-info);
+  font-weight: 700;
+}
+
+.toast--sucesso .toast__icone {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
+.toast--aviso .toast__icone {
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso);
+}
+
+.toast--erro .toast__icone {
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+}
+
+.toast__conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--texto-sm);
+}
+
+.toast__titulo {
+  font-size: var(--texto-sm);
+}
+
+.toast__mensagem {
+  color: var(--cor-texto);
+}
+
+.toast__fechar {
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font-size: var(--texto-lg);
+  line-height: 1;
+  padding: 0 var(--esp-1);
+  cursor: pointer;
+  border-radius: var(--raio-sm);
+}
+
+.toast__fechar:hover {
+  color: var(--cor-texto);
+  background: #eef2f0;
+}
+
+@keyframes toast-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  :host {
+    left: var(--esp-3);
+    right: var(--esp-3);
+    width: auto;
+  }
+}
