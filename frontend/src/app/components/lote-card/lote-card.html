@@ -1,0 +1,49 @@
+<article class="lote" [attr.aria-labelledby]="'lote-' + lote().id + '-titulo'">
+  <div class="lote__capa">
+    @if (foto(); as url) {
+      <img class="lote__foto" [src]="url" [alt]="'Amostra do lote de ' + tecido()" loading="lazy" />
+    } @else {
+      <div class="lote__sem-foto" role="img" [attr.aria-label]="'Lote de ' + tecido() + ' sem foto'">
+        <span aria-hidden="true">{{ tecido().charAt(0) }}</span>
+      </div>
+    }
+    <p [class]="classeStatus()">{{ status() }}</p>
+  </div>
+
+  <div class="lote__corpo">
+    <h3 class="cartao__titulo" [id]="'lote-' + lote().id + '-titulo'">{{ tecido() }}</h3>
+    <p class="texto-suave texto-pequeno lote__descricao">
+      {{ lote().descricao || 'Sem descrição detalhada.' }}
+    </p>
+
+    <dl class="lote__dados">
+      <div>
+        <dt>Peso</dt>
+        <dd>{{ peso() }}</dd>
+      </div>
+      <div>
+        <dt>Metragem</dt>
+        <dd>{{ metragem() }}</dd>
+      </div>
+      <div>
+        <dt>Cor</dt>
+        <dd>{{ lote().corPredominante }}</dd>
+      </div>
+      <div>
+        <dt>Polo</dt>
+        <dd>{{ lote().localizacao }}</dd>
+      </div>
+    </dl>
+
+    <p class="texto-pequeno texto-suave lote__data">Publicado em {{ publicacao() }}</p>
+
+    <button
+      type="button"
+      class="botao botao--primario botao--bloco"
+      [disabled]="!podeNegociar()"
+      (click)="solicitarNegociacao()"
+    >
+      {{ podeNegociar() ? 'Negociar lote' : 'Indisponível para negociação' }}
+    </button>
+  </div>
+</article>
