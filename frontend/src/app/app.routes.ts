@@ -46,12 +46,7 @@ export const routes: Routes = [
     path: 'perfil',
     title: 'Meu perfil — Nova Roupa',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/em-breve/em-breve').then((m) => m.EmBreve),
-    data: {
-      titulo: 'Meu perfil',
-      descricao:
-        'O perfil com histórico de negociações e reputação entra em produção nas issues #52 e #68.',
-    },
+    loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
   },
   {
     path: 'propostas',
