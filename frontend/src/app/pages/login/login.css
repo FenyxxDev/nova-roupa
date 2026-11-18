@@ -1,0 +1,24 @@
+.login {
+  display: flex;
+  justify-content: center;
+  padding: var(--esp-7) var(--esp-4);
+}
+
+.login__cartao {
+  width: 100%;
+  max-width: 440px;
+}
+
+.campo__com-acao {
+  display: flex;
+  gap: var(--esp-2);
+  align-items: center;
+}
+
+.campo__com-acao input {
+  flex: 1 1 auto;
+}
+
+.campo__com-acao .botao {
+  white-space: nowrap;
+}
