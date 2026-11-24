@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,5 +31,12 @@ public class AvaliacaoController {
         var username = authentication == null ? "anonymous" : authentication.getName();
         var avaliacao = avaliacaoService.registrar(dados, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(AvaliacaoRespostaDTO.from(avaliacao));
+    }
+
+    @GetMapping("/minhas")
+    public br.com.novaroupa.dto.AvaliacoesResumoDTO minhas(@RequestParam(defaultValue = "0") @jakarta.validation.constraints.Min(0) int page,
+                                                             @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(100) int size,
+                                                             Authentication authentication) {
+        return avaliacaoService.minhas(authentication.getName(), page, size);
     }
 }

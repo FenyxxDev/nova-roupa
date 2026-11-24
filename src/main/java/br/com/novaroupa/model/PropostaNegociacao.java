@@ -36,6 +36,10 @@ public class PropostaNegociacao {
     @JoinColumn(name = "comprador_id", nullable = false)
     private Usuario comprador;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proposta_original_id")
+    private PropostaNegociacao propostaOriginal;
+
     @Column(columnDefinition = "TEXT")
     private String mensagem;
 
@@ -116,6 +120,9 @@ public class PropostaNegociacao {
     public void setComprador(Usuario comprador) {
         this.comprador = comprador;
     }
+
+    public PropostaNegociacao getPropostaOriginal() { return propostaOriginal; }
+    public void setPropostaOriginal(PropostaNegociacao propostaOriginal) { this.propostaOriginal = propostaOriginal; }
 
     public String getMensagem() {
         return mensagem;

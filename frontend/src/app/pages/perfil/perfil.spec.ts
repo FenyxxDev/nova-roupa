@@ -45,6 +45,9 @@ describe('Perfil', () => {
   });
 
   afterEach(() => {
+    httpMock.match(`${environment.apiUrl}/lotes/meus?page=0&size=12`).forEach((request) =>
+      request.flush({ content: [], totalElements: 0, totalPages: 0, size: 12, number: 0 }),
+    );
     httpMock.verify();
     sessionStorage.clear();
   });
@@ -96,7 +99,7 @@ describe('Perfil', () => {
     expect(fixture.componentInstance.historico()).toHaveLength(2);
   });
 
-  it('explica que os lotes do usuário não podem ser filtrados e não os inventa', () => {
+  it('carrega os lotes próprios sem consultar o catálogo público', () => {
     iniciarSessao(['ROLE_VENDEDOR'], 'vendedor-demo');
     const fixture = TestBed.createComponent(Perfil);
     fixture.detectChanges();
@@ -105,8 +108,8 @@ describe('Perfil', () => {
     fixture.componentInstance.selecionarAba('lotes');
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Lista de lotes ainda indisponível');
-    expect(fixture.nativeElement.textContent).toContain('não permite filtrar lotes pelo vendedor');
+    expect(fixture.nativeElement.textContent).toContain('Meus lotes anunciados');
+    expect(fixture.nativeElement.textContent).toContain('Carregando seus anúncios');
     expect(httpMock.match(`${environment.apiUrl}/lotes`).length).toBe(0);
   });
 

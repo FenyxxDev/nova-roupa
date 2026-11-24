@@ -1,6 +1,7 @@
 package br.com.novaroupa.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -12,6 +13,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 public class NotificacaoRealtimeService {
     private final Map<String, CopyOnWriteArrayList<SseEmitter>> conexoes = new ConcurrentHashMap<>();
+    private final NotificacaoService persistencia;
+
+    public NotificacaoRealtimeService() { this.persistencia = null; }
+
+    @Autowired
+    public NotificacaoRealtimeService(NotificacaoService persistencia) { this.persistencia = persistencia; }
 
     public SseEmitter conectar(String username) {
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
@@ -30,6 +37,10 @@ public class NotificacaoRealtimeService {
     }
 
     public void publicar(String username, String tipo, String mensagem, Map<String, Object> dados) {
+        if (persistencia != null) {
+            try { persistencia.publicar(username, tipo, mensagem, dados.toString()); }
+            catch (RuntimeException ignored) { /* o SSE não deve falhar por indisponibilidade do feed */ }
+        }
         var lista = conexoes.getOrDefault(username, new CopyOnWriteArrayList<>());
         for (SseEmitter emitter : lista) {
             try {

@@ -81,6 +81,38 @@ public class PropostaNegociacaoService {
         return PropostaResponseDTO.de(proposta);
     }
 
+    @Transactional
+    public PropostaResponseDTO criarContraproposta(Long originalId, PropostaCadastroDTO dados, String username) {
+        PropostaNegociacao original = propostaRepository.findById(originalId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proposta original não encontrada"));
+        Usuario autor = usuario(username);
+        if (!original.getComprador().getUsername().equals(username)
+                && !original.getLote().getVendedor().getUsername().equals(username)) {
+            throw new AccessDeniedException("Somente participantes podem enviar contrapropostas");
+        }
+        if (original.getStatus() != StatusPropostaNegociacao.PENDENTE
+                || original.getLote().getStatus() != StatusLote.DISPONIVEL) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A negociação não está disponível para contraproposta");
+        }
+        if (!original.getLote().getId().equals(dados.loteId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A contraproposta deve permanecer no mesmo lote");
+        }
+        PropostaNegociacao proposta = new PropostaNegociacao(original.getLote(), original.getComprador(),
+                dados.mensagem(), dados.telefoneContato(), dados.valorOfertado(), dados.quantidadeKgSolicitada());
+        proposta.setPropostaOriginal(original);
+        PropostaNegociacao salva = propostaRepository.save(proposta);
+        publicarNotificacaoContraproposta(original, autor, salva);
+        return PropostaResponseDTO.de(salva);
+    }
+
+    private void publicarNotificacaoContraproposta(PropostaNegociacao original, Usuario autor, PropostaNegociacao nova) {
+        String destinatario = autor.getUsername().equals(original.getComprador().getUsername())
+                ? original.getLote().getVendedor().getUsername() : original.getComprador().getUsername();
+        Map<String, Object> dados = new HashMap<>();
+        dados.put("propostaId", nova.getId()); dados.put("propostaOriginalId", original.getId());
+        notificacoes.publicar(destinatario, "nova-contraproposta", "Você recebeu uma contraproposta", dados);
+    }
+
     @Transactional(readOnly = true)
     public List<PropostaResponseDTO> minhas(String username) {
         Usuario comprador = usuario(username);

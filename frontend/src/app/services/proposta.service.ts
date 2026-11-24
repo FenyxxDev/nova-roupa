@@ -22,6 +22,10 @@ export class PropostaService {
     return this.http.post<Proposta>(this.apiUrl, dados);
   }
 
+  contraproposta(originalId: number, dados: PropostaCadastro): Observable<Proposta> {
+    return this.http.post<Proposta>(`${this.apiUrl}/${originalId}/contrapropostas`, dados);
+  }
+
   /** Propostas enviadas pelo utilizador autenticado (COMPRADOR/ADMIN). */
   minhas(): Observable<Proposta[]> {
     return this.http.get<Proposta[]>(`${this.apiUrl}/minhas`);

@@ -160,7 +160,9 @@ export class PropostaModal implements OnInit {
       return;
     }
     this.enviando.set(true);
-    this.servico.enviar(this.paraPayload()).subscribe({
+    const original = this.propostaOriginal();
+    const envio = original ? this.servico.contraproposta(original.id, this.paraPayload()) : this.servico.enviar(this.paraPayload());
+    envio.subscribe({
       next: (proposta) => {
         this.enviando.set(false);
         this.notificacoes.sucesso(

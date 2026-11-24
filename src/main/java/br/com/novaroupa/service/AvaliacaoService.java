@@ -1,6 +1,8 @@
 package br.com.novaroupa.service;
 
 import br.com.novaroupa.dto.AvaliacaoDTO;
+import br.com.novaroupa.dto.AvaliacoesResumoDTO;
+import br.com.novaroupa.dto.AvaliacaoRespostaDTO;
 import br.com.novaroupa.model.AvaliacaoParceiro;
 import br.com.novaroupa.model.PropostaNegociacao;
 import br.com.novaroupa.model.StatusPropostaNegociacao;
@@ -9,6 +11,7 @@ import br.com.novaroupa.repository.AvaliacaoParceiroRepository;
 import br.com.novaroupa.repository.PropostaNegociacaoRepository;
 import br.com.novaroupa.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -55,6 +58,15 @@ public class AvaliacaoService {
                 new AvaliacaoParceiro(proposta, avaliador, avaliado, dados.nota(), dados.comentario()));
         recalcularReputacao(avaliado);
         return avaliacao;
+    }
+
+    @Transactional(readOnly = true)
+    public AvaliacoesResumoDTO minhas(String username, int page, int size) {
+        Usuario avaliado = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário autenticado não possui perfil local"));
+        var pagina = avaliacaoRepository.findByAvaliadoOrderByDataCriacaoDescIdDesc(avaliado, PageRequest.of(page, size));
+        return new AvaliacoesResumoDTO(avaliado.getReputacaoMedia(), avaliado.getTotalAvaliacoes(),
+                pagina.getContent().stream().map(AvaliacaoRespostaDTO::from).toList());
     }
 
     private Usuario identificarAvaliado(PropostaNegociacao proposta, Usuario avaliador) {
