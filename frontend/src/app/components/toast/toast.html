@@ -1,0 +1,26 @@
+<div class="toast-regiao" aria-live="polite" aria-relevant="additions text">
+  @for (item of notificacoes(); track item.id) {
+    <div
+      class="toast"
+      [class.toast--sucesso]="item.tipo === 'sucesso'"
+      [class.toast--aviso]="item.tipo === 'aviso'"
+      [class.toast--erro]="item.tipo === 'erro'"
+      [class.toast--info]="item.tipo === 'info'"
+      [attr.role]="item.tipo === 'erro' ? 'alert' : 'status'"
+    >
+      <span class="toast__icone" aria-hidden="true">{{ icone(item.tipo) }}</span>
+      <span class="toast__conteudo">
+        <strong class="toast__titulo">{{ rotulo(item.tipo) }}</strong>
+        <span class="toast__mensagem">{{ item.mensagem }}</span>
+      </span>
+      <button
+        type="button"
+        class="toast__fechar"
+        (click)="dispensar(item.id)"
+        [attr.aria-label]="'Dispensar alerta: ' + item.mensagem"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+  }
+</div>

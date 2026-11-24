@@ -1,0 +1,121 @@
+<section class="container cadastro" aria-labelledby="cadastro-titulo">
+  <header class="cadastro__cabecalho">
+    <h1 id="cadastro-titulo" class="cartao__titulo">Publicar lote de retalhos</h1>
+    <p class="texto-suave">
+      Descreva o excedente têxtil com o máximo de detalhe: peso, cor e polo ajudam os
+      artesãos a encontrar o lote certo na vitrine.
+    </p>
+  </header>
+
+  @if (erroEnvio(); as mensagem) {
+    <p class="aviso aviso--erro" role="alert">{{ mensagem }}</p>
+  }
+
+  <form class="cartao cadastro__formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+    <div class="grade grade--2">
+      <div class="campo">
+        <label class="campo__rotulo" for="tipoTecido">
+          Tipo de tecido <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <select id="tipoTecido" formControlName="tipoTecido" [attr.aria-invalid]="campoInvalido('tipoTecido')">
+          <option value="">Selecione o tecido</option>
+          @for (tecido of tecidos; track tecido) {
+            <option [value]="tecido">{{ rotuloTecido(tecido) }}</option>
+          }
+        </select>
+        @if (campoInvalido('tipoTecido')) {
+          <p class="campo__erro">Escolha o tipo de tecido do lote.</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="pesoKg">
+          Peso total (kg) <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input id="pesoKg" type="number" formControlName="pesoKg" min="1" step="0.1" inputmode="decimal" />
+        @if (campoInvalido('pesoKg')) {
+          <p class="campo__erro">Informe um peso de pelo menos 1 kg.</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="metragemAproximada">Metragem aproximada (m)</label>
+        <input
+          id="metragemAproximada"
+          type="number"
+          formControlName="metragemAproximada"
+          min="0.1"
+          step="0.1"
+          inputmode="decimal"
+        />
+        <p class="campo__ajuda">Opcional. Ajuda o comprador a estimar o rendimento do tecido.</p>
+        @if (campoInvalido('metragemAproximada')) {
+          <p class="campo__erro">A metragem deve ser maior do que zero.</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="precoBaseKg">Preço base por kg (R$)</label>
+        <input id="precoBaseKg" type="number" formControlName="precoBaseKg" min="0.01" step="0.01" inputmode="decimal" />
+        <p class="campo__ajuda">Opcional. Fica registado no lote para as negociações.</p>
+        @if (campoInvalido('precoBaseKg')) {
+          <p class="campo__erro">O preço deve ser maior do que zero.</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="corPredominante">
+          Cor predominante <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input id="corPredominante" type="text" formControlName="corPredominante" [maxlength]="corMaximo" />
+        @if (campoInvalido('corPredominante')) {
+          <p class="campo__erro">
+            Descreva a cor em até {{ corMaximo }} caracteres (por exemplo, "azul índigo").
+          </p>
+        }
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="localizacao">
+          Polo de retirada <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input id="localizacao" type="text" formControlName="localizacao" [maxlength]="localizacaoMaximo" />
+        @if (campoInvalido('localizacao')) {
+          <p class="campo__erro">
+            Indique o polo ou a cidade de retirada (até {{ localizacaoMaximo }} caracteres).
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="descricao">Descrição do lote</label>
+      <textarea
+        id="descricao"
+        rows="4"
+        formControlName="descricao"
+        [maxlength]="descricaoMaximo"
+        placeholder="Ex.: retalhos de jeans com pequenas manchas, ideais para acessórios."
+      ></textarea>
+      <p class="campo__ajuda">Até {{ descricaoMaximo }} caracteres. Não é permitido HTML.</p>
+      @if (campoInvalido('descricao')) {
+        <p class="campo__erro">A descrição passou do limite de {{ descricaoMaximo }} caracteres.</p>
+      }
+    </div>
+
+    <div class="campo">
+      <span class="campo__rotulo">Fotos das amostras</span>
+      <app-galeria-fotos (fotosAlteradas)="fotosAlteradas($event)" />
+      <p class="campo__ajuda">
+        As imagens são validadas no navegador e enviadas após a criação do lote.
+      </p>
+    </div>
+
+    <div class="linha espaco-entre cadastro__acoes">
+      <a class="botao botao--secundario" routerLink="/catalogo">Cancelar</a>
+      <button type="submit" class="botao botao--primario" [disabled]="enviando()">
+        {{ enviando() ? 'Publicando…' : 'Publicar lote' }}
+      </button>
+    </div>
+  </form>
+</section>

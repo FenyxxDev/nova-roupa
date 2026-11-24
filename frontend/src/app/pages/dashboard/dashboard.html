@@ -1,0 +1,17 @@
+<main class="container dashboard" aria-labelledby="titulo-dashboard">
+  <header class="dashboard__cabecalho">
+    <div><p class="selo selo--info">Impacto mensurável</p><h1 id="titulo-dashboard">Painel de impacto social</h1><p class="texto-suave">Acompanhe o que a moda circular mantém em movimento.</p></div>
+    <button class="botao botao--secundario" type="button" (click)="carregar()" [disabled]="carregando()">Atualizar dados</button>
+  </header>
+  @if (carregando()) { <section class="cartao dashboard__estado" role="status">Carregando métricas…</section> }
+  @if (erro(); as mensagem) { <section class="aviso aviso--erro" role="alert"><p>{{ mensagem }}</p><button class="botao botao--secundario" type="button" (click)="carregar()">Tentar novamente</button></section> }
+  @if (!carregando() && !erro() && dados(); as impacto) {
+    <section class="dashboard__metricas" aria-label="Resumo do impacto">
+      <article class="cartao dashboard__metrica"><span aria-hidden="true">♻</span><strong>{{ formatar(impacto.retalhosReaproveitadosKg) }} kg</strong><small>Retalhos reaproveitados</small></article>
+      <article class="cartao dashboard__metrica"><span aria-hidden="true">◌</span><strong>{{ formatar(impacto.co2EvitadoKg) }} kg</strong><small>CO₂ evitado</small></article>
+      <article class="cartao dashboard__metrica"><span aria-hidden="true">↗</span><strong>{{ formatar(impacto.lotesNegociados) }}</strong><small>Lotes negociados</small></article>
+      <article class="cartao dashboard__metrica"><span aria-hidden="true">◎</span><strong>{{ formatar(impacto.parceirosAtivos) }}</strong><small>Parceiros ativos</small></article>
+    </section>
+    <section class="cartao dashboard__manifesto"><p class="selo selo--sucesso">Circularidade em dados</p><h2>Cada quilo encontra um novo caminho.</h2><p class="texto-suave">O Nova Roupa conecta confecções e artesãos para transformar excedentes têxteis em matéria-prima acessível, reduzindo desperdício e fortalecendo redes locais.</p></section>
+  }
+</main>

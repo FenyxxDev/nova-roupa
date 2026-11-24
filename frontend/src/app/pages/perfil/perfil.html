@@ -1,0 +1,299 @@
+<section class="container perfil" aria-labelledby="titulo-perfil">
+  <header class="perfil__cabecalho">
+    <div>
+      <p class="selo selo--info">Área da conta</p>
+      <h1 id="titulo-perfil">Meu perfil</h1>
+      <p class="texto-suave">Seus dados de sessão, negociações e avaliações.</p>
+    </div>
+    <button type="button" class="botao botao--secundario" (click)="carregar()">
+      Atualizar histórico
+    </button>
+  </header>
+
+  <section class="cartao perfil__identidade" aria-label="Dados do perfil">
+    <div class="perfil__avatar" aria-hidden="true">{{ username().slice(0, 1).toUpperCase() }}</div>
+    <div class="perfil__identidade-conteudo">
+      <p class="texto-pequeno texto-suave">Usuário</p>
+      <h2>{{ username() }}</h2>
+      <div class="linha perfil__papeis" aria-label="Papéis da conta">
+        @for (papel of papeis(); track papel) {
+          <span class="selo selo--neutro">{{ rotuloPapel(papel) }}</span>
+        }
+      </div>
+    </div>
+    <aside class="perfil__reputacao" aria-label="Reputação">
+      <span class="perfil__reputacao-icone" aria-hidden="true">☆</span>
+      <div>
+        <strong>Pontuação não disponível</strong>
+        <p class="texto-pequeno texto-suave">A API não oferece consulta aos feedbacks recebidos.</p>
+      </div>
+    </aside>
+  </section>
+
+  <div class="perfil__abas" role="tablist" aria-label="Seções do perfil">
+    <button
+      id="aba-negociacoes"
+      type="button"
+      role="tab"
+      class="botao botao--discreto"
+      [class.perfil__aba--ativa]="aba() === 'negociacoes'"
+      [attr.aria-selected]="aba() === 'negociacoes'"
+      aria-controls="painel-negociacoes"
+      (click)="selecionarAba('negociacoes')"
+    >
+      Minhas propostas e histórico
+    </button>
+    <button
+      id="aba-lotes"
+      type="button"
+      role="tab"
+      class="botao botao--discreto"
+      [class.perfil__aba--ativa]="aba() === 'lotes'"
+      [attr.aria-selected]="aba() === 'lotes'"
+      aria-controls="painel-lotes"
+      (click)="selecionarAba('lotes')"
+    >
+      Meus lotes anunciados
+    </button>
+  </div>
+
+  @if (aba() === 'lotes') {
+    <section
+      id="painel-lotes"
+      class="cartao perfil__indisponivel"
+      role="tabpanel"
+      aria-labelledby="aba-lotes"
+    >
+      <span class="perfil__aviso-icone" aria-hidden="true">i</span>
+      <div>
+        <h2 class="cartao__titulo">Lista de lotes ainda indisponível</h2>
+        <p class="texto-suave">
+          O catálogo da API não permite filtrar lotes pelo vendedor autenticado. Para não mostrar
+          lotes de outras pessoas como seus, esta lista só poderá ser ativada quando o backend
+          oferecer uma consulta de lotes do usuário.
+        </p>
+        @if (papeis().includes('ROLE_VENDEDOR') || papeis().includes('ROLE_ADMIN')) {
+          <a class="botao botao--primario" routerLink="/lotes/novo">Publicar um lote</a>
+        } @else {
+          <a class="botao botao--secundario" routerLink="/catalogo">Explorar o catálogo</a>
+        }
+      </div>
+    </section>
+  } @else {
+    <section id="painel-negociacoes" role="tabpanel" aria-labelledby="aba-negociacoes">
+      <div class="perfil__resumo" aria-label="Resumo das negociações">
+        <article class="cartao perfil__resumo-item">
+          <span class="texto-pequeno texto-suave">Em andamento</span>
+          <strong>{{ negociacoesAtivas() }}</strong>
+        </article>
+        <article class="cartao perfil__resumo-item">
+          <span class="texto-pequeno texto-suave">Concluídas</span>
+          <strong>{{ negociacoesConcluidas() }}</strong>
+        </article>
+      </div>
+
+      <p class="perfil__nota-api texto-pequeno texto-suave">
+        O histórico exibido é formado pelas propostas enviadas e recebidas disponíveis para seu
+        papel. A consulta paginada de histórico do backend exige um ID de usuário que não é
+        fornecido na sessão.
+      </p>
+
+      @if (erroMinhas(); as mensagem) {
+        <div class="aviso aviso--erro" role="alert">
+          <p>{{ mensagem }} (propostas enviadas)</p>
+          <button type="button" class="botao botao--secundario" (click)="carregar()">
+            Tentar novamente
+          </button>
+        </div>
+      }
+      @if (erroRecebidas(); as mensagem) {
+        <div class="aviso aviso--erro" role="alert">
+          <p>{{ mensagem }} (propostas recebidas)</p>
+          <button type="button" class="botao botao--secundario" (click)="carregar()">
+            Tentar novamente
+          </button>
+        </div>
+      }
+
+      <div class="perfil__filtros" role="group" aria-label="Filtrar negociações">
+        <button
+          type="button"
+          class="botao botao--discreto"
+          [class.perfil__filtro--ativo]="filtro() === 'ativas'"
+          [attr.aria-pressed]="filtro() === 'ativas'"
+          (click)="selecionarFiltro('ativas')"
+        >
+          Em andamento
+        </button>
+        <button
+          type="button"
+          class="botao botao--discreto"
+          [class.perfil__filtro--ativo]="filtro() === 'concluidas'"
+          [attr.aria-pressed]="filtro() === 'concluidas'"
+          (click)="selecionarFiltro('concluidas')"
+        >
+          Concluídas
+        </button>
+        <button
+          type="button"
+          class="botao botao--discreto"
+          [class.perfil__filtro--ativo]="filtro() === 'todas'"
+          [attr.aria-pressed]="filtro() === 'todas'"
+          (click)="selecionarFiltro('todas')"
+        >
+          Todas
+        </button>
+      </div>
+
+      <p class="visualmente-oculto" aria-live="polite">
+        @if (carregando()) {
+          Carregando negociações…
+        } @else {
+          {{ propostasVisiveis().length }} negociação(ões) nesta lista.
+        }
+      </p>
+
+      @if (!podeVerMinhas() && !podeVerRecebidas()) {
+        <div class="cartao perfil__vazio">
+          <h2 class="cartao__titulo">Histórico indisponível para este perfil</h2>
+          <p class="texto-suave">
+            Sua conta não tem papel de comprador ou vendedor para consultar propostas.
+          </p>
+        </div>
+      } @else if (carregando() && historico().length === 0) {
+        <div class="cartao perfil__vazio" role="status">Carregando suas negociações…</div>
+      } @else if (propostasVisiveis().length === 0) {
+        <div class="cartao perfil__vazio">
+          <h2 class="cartao__titulo">
+            @if (filtro() === 'ativas') {
+              Nenhuma negociação em andamento
+            } @else if (filtro() === 'concluidas') {
+              Nenhuma negociação concluída
+            } @else {
+              Nenhuma negociação encontrada
+            }
+          </h2>
+          <p class="texto-suave">
+            @if (filtro() === 'ativas') {
+              Suas propostas pendentes ou aceitas aparecerão aqui.
+            } @else {
+              Quando houver negociações correspondentes, elas aparecerão neste histórico.
+            }
+          </p>
+          <a class="botao botao--secundario" routerLink="/catalogo">Ver lotes disponíveis</a>
+        </div>
+      } @else {
+        <ul class="perfil__lista">
+          @for (proposta of propostasVisiveis(); track proposta.id) {
+            <li class="cartao perfil__negociacao">
+              <header class="perfil__negociacao-topo">
+                <div>
+                  <p class="texto-pequeno texto-suave">
+                    {{ direcaoDaProposta(proposta) }} · Lote #{{ proposta.loteId }}
+                  </p>
+                  <h2 class="cartao__titulo">Negociação com {{ nomeParceiro(proposta) }}</h2>
+                </div>
+                <span [class]="classeSelo(proposta.status)">{{
+                  rotuloStatus(proposta.status)
+                }}</span>
+              </header>
+              <dl class="perfil__dados">
+                <div>
+                  <dt>Valor por kg</dt>
+                  <dd>{{ formatarReais(proposta.valorOfertado) }}</dd>
+                </div>
+                <div>
+                  <dt>Quantidade</dt>
+                  <dd>{{ proposta.quantidadeKg }} kg</dd>
+                </div>
+                <div>
+                  <dt>Total estimado</dt>
+                  <dd>{{ formatarReais(proposta.valorOfertado * proposta.quantidadeKg) }}</dd>
+                </div>
+                <div>
+                  <dt>Atualizada</dt>
+                  <dd>{{ formatarDataHora(proposta.dataAtualizacao || proposta.dataCriacao) }}</dd>
+                </div>
+              </dl>
+              <p class="perfil__mensagem">{{ proposta.mensagem }}</p>
+
+              @if (proposta.status === 'CONCLUIDA') {
+                @if (jaAvaliadaNestaSessao(proposta.id)) {
+                  <p class="aviso aviso--sucesso" role="status">
+                    Avaliação registrada nesta sessão.
+                  </p>
+                } @else {
+                  <button
+                    type="button"
+                    class="botao botao--secundario"
+                    (click)="alternarAvaliacao(proposta.id)"
+                  >
+                    {{
+                      avaliacaoAberta() === proposta.id ? 'Cancelar avaliação' : 'Avaliar parceria'
+                    }}
+                  </button>
+                }
+                <p class="texto-pequeno texto-suave">
+                  É possível registrar uma avaliação; a API ainda não permite consultar avaliações
+                  já recebidas.
+                </p>
+              }
+              @if (mensagemResultado(proposta.id); as mensagem) {
+                <p class="aviso aviso--info" role="status">{{ mensagem }}</p>
+              }
+              @if (avaliacaoAberta() === proposta.id && !jaAvaliadaNestaSessao(proposta.id)) {
+                <form
+                  class="perfil__form-avaliacao"
+                  (submit)="$event.preventDefault(); enviarAvaliacao(proposta)"
+                >
+                  <fieldset>
+                    <legend>Como foi sua experiência com {{ nomeParceiro(proposta) }}?</legend>
+                    <div
+                      class="perfil__estrelas"
+                      role="group"
+                      [attr.aria-label]="'Nota para a negociação ' + proposta.id"
+                    >
+                      @for (nota of opcoesNota; track nota) {
+                        <button
+                          type="button"
+                          class="perfil__estrela"
+                          [class.perfil__estrela--selecionada]="(notas()[proposta.id] ?? 0) >= nota"
+                          [attr.aria-label]="nota + ' de 5 estrelas'"
+                          [attr.aria-pressed]="notas()[proposta.id] === nota"
+                          (click)="definirNota(proposta.id, nota)"
+                        >
+                          ★
+                        </button>
+                      }
+                    </div>
+                  </fieldset>
+                  <label class="perfil__rotulo-comentario" [for]="'comentario-' + proposta.id"
+                    >Comentário (opcional)</label
+                  >
+                  <textarea
+                    [id]="'comentario-' + proposta.id"
+                    rows="3"
+                    maxlength="500"
+                    [value]="comentarios()[proposta.id] ?? ''"
+                    (input)="definirComentario(proposta.id, $event)"
+                  ></textarea>
+                  <button
+                    type="submit"
+                    class="botao botao--primario"
+                    [disabled]="!notas()[proposta.id] || avaliacaoEnviando() === proposta.id"
+                  >
+                    @if (avaliacaoEnviando() === proposta.id) {
+                      Enviando…
+                    } @else {
+                      Enviar avaliação
+                    }
+                  </button>
+                </form>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>

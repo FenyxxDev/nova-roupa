@@ -1,0 +1,127 @@
+<a class="skip-link" href="#conteudo">Pular para o conteúdo principal</a>
+
+<header class="cabecalho">
+  <div class="container cabecalho__interno">
+    <a class="marca" routerLink="/" (click)="fecharMenu()">
+      <span class="marca__simbolo" aria-hidden="true">NR</span>
+      <span class="marca__texto">Nova Roupa</span>
+    </a>
+
+    <button
+      type="button"
+      class="cabecalho__alternar botao botao--discreto"
+      (click)="alternarMenu()"
+      [attr.aria-expanded]="menuAberto()"
+      aria-controls="menu-principal"
+    >
+      <span aria-hidden="true">☰</span>
+      <span class="visualmente-oculto">Abrir ou fechar o menu de navegação</span>
+    </button>
+
+    <nav
+      id="menu-principal"
+      class="navegacao"
+      [class.navegacao--aberta]="menuAberto()"
+      aria-label="Navegação principal"
+    >
+      <ul class="navegacao__lista">
+        <li>
+          <a
+            routerLink="/"
+            routerLinkActive="navegacao__link--ativo"
+            ariaCurrentWhenActive="page"
+            (click)="fecharMenu()"
+            >Início</a
+          >
+        </li>
+        <li>
+          <a
+            routerLink="/catalogo"
+            routerLinkActive="navegacao__link--ativo"
+            ariaCurrentWhenActive="page"
+            (click)="fecharMenu()"
+            >Catálogo</a
+          >
+        </li>
+        <li>
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="navegacao__link--ativo"
+            ariaCurrentWhenActive="page"
+            (click)="fecharMenu()"
+            >Impacto</a
+          >
+        </li>
+        @if (podePublicar()) {
+          <li>
+            <a
+              routerLink="/lotes/novo"
+              routerLinkActive="navegacao__link--ativo"
+              ariaCurrentWhenActive="page"
+              (click)="fecharMenu()"
+              >Publicar lote</a
+            >
+          </li>
+        }
+        @if (autenticado()) {
+          <li>
+            <a
+              routerLink="/propostas"
+              routerLinkActive="navegacao__link--ativo"
+              ariaCurrentWhenActive="page"
+              (click)="fecharMenu()"
+              >Propostas</a
+            >
+          </li>
+          <li>
+            <a
+              routerLink="/perfil"
+              routerLinkActive="navegacao__link--ativo"
+              ariaCurrentWhenActive="page"
+              (click)="fecharMenu()"
+              >Meu perfil</a
+            >
+          </li>
+        }
+      </ul>
+
+      <div class="navegacao__sessao">
+        @if (autenticado()) {
+          <span class="navegacao__usuario">Olá, {{ username() }}</span>
+          <button type="button" class="botao botao--secundario" (click)="sair()">Sair</button>
+        } @else {
+          <a class="botao botao--primario" routerLink="/login" (click)="fecharMenu()">Entrar</a>
+        }
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="conteudo" class="conteudo" tabindex="-1">
+  <router-outlet />
+</main>
+
+<app-toast />
+
+<footer class="rodape">
+  <div class="container rodape__interno">
+    <div>
+      <p class="rodape__marca">Nova Roupa</p>
+      <p class="texto-pequeno mb-0">
+        Plataforma de reaproveitamento de retalhos têxteis entre confecções e artesãos.
+      </p>
+    </div>
+    <nav aria-label="Links institucionais">
+      <ul class="rodape__links">
+        <li><a routerLink="/">Início</a></li>
+        <li><a routerLink="/catalogo">Catálogo</a></li>
+        <li><a routerLink="/dashboard">Impacto</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="container rodape__base">
+    <p class="texto-pequeno mb-0">
+      © {{ anoAtual }} Nova Roupa — projeto acadêmico Senac. Conteúdo demonstrativo.
+    </p>
+  </div>
+</footer>

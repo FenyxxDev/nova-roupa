@@ -1,0 +1,65 @@
+<section class="heroi" aria-labelledby="titulo-heroi">
+  <div class="container heroi__conteudo">
+    <p class="selo selo--info">Economia circular têxtil</p>
+    <h1 id="titulo-heroi">
+      Retalhos que sobrariam no lixo viram matéria-prima para novas coleções
+    </h1>
+    <p class="heroi__texto">
+      A Nova Roupa conecta confecções que geram excedentes de tecido a artesãos e
+      pequenas marcas que precisam de matéria-prima com preço justo, origem rastreada
+      e impacto socioambiental medido.
+    </p>
+    <div class="linha">
+      @if (!autenticado()) {
+        <a class="botao botao--primario" routerLink="/login">Entrar na plataforma</a>
+        <a class="botao botao--secundario" routerLink="/catalogo">Explorar catálogo</a>
+      } @else {
+        <a class="botao botao--primario" routerLink="/catalogo">Explorar catálogo</a>
+        <a class="botao botao--secundario" routerLink="/dashboard">Ver impacto</a>
+      }
+    </div>
+    @if (autenticado()) {
+      <p class="texto-pequeno texto-suave mt-4">
+        Sessão ativa como <strong>{{ username() }}</strong>.
+      </p>
+    }
+  </div>
+</section>
+
+<section class="container mt-6" aria-labelledby="titulo-pilares">
+  <h2 id="titulo-pilares">Como funciona</h2>
+  <div class="grade grade--3 mt-4">
+    <article class="cartao">
+      <h3 class="cartao__titulo">1. A confecção publica</h3>
+      <p class="texto-suave mb-0">
+        O vendedor descreve o lote — tipo de tecido, peso, cor predominante, preço base
+        e fotos — e define a localização de retirada.
+      </p>
+    </article>
+    <article class="cartao">
+      <h3 class="cartao__titulo">2. O artesão negocia</h3>
+      <p class="texto-suave mb-0">
+        O comprador filtra o catálogo, envia uma proposta com valor por quilo e
+        quantidade desejada, e acompanha a resposta do vendedor.
+      </p>
+    </article>
+    <article class="cartao">
+      <h3 class="cartao__titulo">3. O impacto é medido</h3>
+      <p class="texto-suave mb-0">
+        Cada negociação concluída alimenta o painel de impacto: quilos reaproveitados,
+        produtores beneficiados e estimativa de CO₂ evitado.
+      </p>
+    </article>
+  </div>
+</section>
+
+<section class="container mt-6" aria-labelledby="titulo-transparencia">
+  <div class="cartao">
+    <h2 id="titulo-transparencia" class="cartao__titulo">Transparência desde o primeiro dia</h2>
+    <ul class="lista-checagem">
+      <li>Autenticação com JWT e perfis distintos para comprador, vendedor e administrador.</li>
+      <li>Regras de negócio validadas no servidor: piso de 50% do preço base por quilo.</li>
+      <li>Avaliação mútua depois de cada negociação concluída, com bloqueio de duplicidade.</li>
+    </ul>
+  </div>
+</section>
