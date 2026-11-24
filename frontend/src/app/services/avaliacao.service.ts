@@ -21,6 +21,12 @@ export interface AvaliacaoResposta {
   readonly dataCriacao: string;
 }
 
+export interface AvaliacoesResumo {
+  readonly media: number;
+  readonly total: number;
+  readonly avaliacoes: readonly AvaliacaoResposta[];
+}
+
 /** Integração de avaliações do parceiro, somente para registro. */
 @Injectable({ providedIn: 'root' })
 export class AvaliacaoService {
@@ -30,5 +36,10 @@ export class AvaliacaoService {
   /** Registra uma nota de 1 a 5 após a conclusão da proposta. */
   registrar(dados: AvaliacaoCadastro): Observable<AvaliacaoResposta> {
     return this.http.post<AvaliacaoResposta>(this.apiUrl, dados);
+  }
+
+  /** Consulta a reputação e os comentários recebidos pelo usuário autenticado. */
+  minhas(page = 0, size = 10): Observable<AvaliacoesResumo> {
+    return this.http.get<AvaliacoesResumo>(`${this.apiUrl}/minhas?page=${page}&size=${size}`);
   }
 }

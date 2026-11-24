@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AvaliacaoService } from '../../services/avaliacao.service';
+import { AvaliacaoService, AvaliacoesResumo } from '../../services/avaliacao.service';
 import {
   Proposta,
   classeSeloProposta,
@@ -23,7 +24,7 @@ type FiltroNegociacao = 'ativas' | 'concluidas' | 'todas';
 /** Perfil autenticado e histórico com os contratos de API atualmente disponíveis. */
 @Component({
   selector: 'app-perfil',
-  imports: [RouterLink],
+  imports: [RouterLink, DecimalPipe],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
@@ -55,6 +56,8 @@ export class Perfil {
   readonly lotes = signal<readonly LoteResponse[]>([]);
   readonly carregandoLotes = signal(false);
   readonly erroLotes = signal<string | null>(null);
+  readonly reputacao = signal<AvaliacoesResumo | null>(null);
+  readonly erroReputacao = signal<string | null>(null);
   readonly loteEditando = signal<number | null>(null);
   readonly salvandoLote = signal(false);
   readonly encerrandoLote = signal<number | null>(null);
@@ -97,7 +100,16 @@ export class Perfil {
 
   constructor() {
     this.carregar();
+    this.carregarReputacao();
     if (this.podeVerRecebidas()) this.carregarLotes();
+  }
+
+  carregarReputacao(): void {
+    this.erroReputacao.set(null);
+    this.avaliacoesApi.minhas().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (resumo) => this.reputacao.set(resumo),
+      error: () => this.erroReputacao.set('Não foi possível carregar sua reputação agora.'),
+    });
   }
 
   carregarLotes(): void {

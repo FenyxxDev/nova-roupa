@@ -45,6 +45,9 @@ describe('Perfil', () => {
   });
 
   afterEach(() => {
+    httpMock.match(`${URL_AVALIACOES}/minhas?page=0&size=10`).forEach((request) =>
+      request.flush({ media: 0, total: 0, avaliacoes: [] }),
+    );
     httpMock.match(`${environment.apiUrl}/lotes/meus?page=0&size=12`).forEach((request) =>
       request.flush({ content: [], totalElements: 0, totalPages: 0, size: 12, number: 0 }),
     );
@@ -147,13 +150,20 @@ describe('Perfil', () => {
     expect(fixture.componentInstance.mensagemResultado(12)).toContain('Avaliação registrada');
   });
 
-  it('não apresenta uma reputação inventada quando a API não fornece leitura de feedbacks', () => {
+  it('exibe a reputação recebida pela API', () => {
     iniciarSessao(['ROLE_COMPRADOR']);
     const fixture = TestBed.createComponent(Perfil);
     fixture.detectChanges();
     httpMock.expectOne(`${URL_PROPOSTAS}/minhas`).flush([]);
 
-    expect(fixture.nativeElement.textContent).toContain('Pontuação não disponível');
-    expect(httpMock.match(URL_AVALIACOES).length).toBe(0);
+    httpMock.expectOne(`${URL_AVALIACOES}/minhas?page=0&size=10`).flush({
+      media: 4.5,
+      total: 2,
+      avaliacoes: [{ id: 1, propostaId: 8, avaliadorId: 4, avaliadoId: 3, nota: 5, comentario: 'Ótima parceria.', dataCriacao: '2026-11-18T10:00:00' }],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('4.5 / 5');
+    expect(fixture.nativeElement.textContent).toContain('Ótima parceria.');
   });
 });

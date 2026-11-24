@@ -22,10 +22,22 @@
       </div>
     </div>
     <aside class="perfil__reputacao" aria-label="Reputação">
-      <span class="perfil__reputacao-icone" aria-hidden="true">☆</span>
+      <span class="perfil__reputacao-icone" aria-hidden="true">★</span>
       <div>
-        <strong>Pontuação não disponível</strong>
-        <p class="texto-pequeno texto-suave">A API não oferece consulta aos feedbacks recebidos.</p>
+        @if (erroReputacao(); as mensagem) {
+          <strong>Reputação indisponível</strong>
+          <p class="texto-pequeno texto-suave">{{ mensagem }}</p>
+        } @else if (reputacao(); as resumo) {
+          <strong>{{ resumo.media | number: '1.1-2' }} / 5 · {{ resumo.total }} avaliação(ões)</strong>
+          @if (resumo.avaliacoes.length > 0) {
+            <p class="texto-pequeno texto-suave">{{ resumo.avaliacoes[0].comentario || 'Sem comentário textual.' }}</p>
+          } @else {
+            <p class="texto-pequeno texto-suave">Ainda não há avaliações recebidas.</p>
+          }
+        } @else {
+          <strong>Carregando reputação…</strong>
+          <p class="texto-pequeno texto-suave">Buscando seus feedbacks recebidos.</p>
+        }
       </div>
     </aside>
   </section>
@@ -239,8 +251,7 @@
                   </button>
                 }
                 <p class="texto-pequeno texto-suave">
-                  É possível registrar uma avaliação; a API ainda não permite consultar avaliações
-                  já recebidas.
+                  Você pode registrar uma avaliação após a conclusão da negociação.
                 </p>
               }
               @if (mensagemResultado(proposta.id); as mensagem) {

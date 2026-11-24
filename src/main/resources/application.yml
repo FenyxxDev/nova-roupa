@@ -51,6 +51,9 @@ springdoc:
 app:
   storage:
     dir: ${PHOTO_STORAGE_DIR:./data/uploads}
+  demo:
+    seed:
+      enabled: ${DEMO_SEED_ENABLED:true}
   mail:
     from: ${MAIL_FROM:no-reply@novaroupa.local}
   cors:

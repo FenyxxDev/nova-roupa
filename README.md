@@ -34,6 +34,8 @@ npm start
 
 A API usa SQLite em `extensao.db` e fotos em `./data/uploads` no perfil `dev`. Para produção, configure `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_URL`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS` e `PHOTO_STORAGE_DIR`.
 
+Ao iniciar em `dev`, a aplicação executa uma seed idempotente com os três usuários acima, três lotes demonstrativos, fotos SVG persistentes e propostas de exemplo. Para iniciar sem a seed, use `DEMO_SEED_ENABLED=false`. O E2E pode ser executado contra serviços já iniciados com `npm --prefix frontend run e2e`.
+
 ## APIs principais
 
 - `GET /api/lotes`: catálogo paginado.
@@ -53,4 +55,7 @@ Consulte o [roteiro de apresentação](docs/ROTEIRO_APRESENTACAO.md) e a [arquit
 ```bash
 mvn test
 npm --prefix frontend run build
+npm --prefix frontend run test -- --watch=false --isolate
+# com API em :8080 e SPA em :4200:
+npm --prefix frontend run e2e
 ```

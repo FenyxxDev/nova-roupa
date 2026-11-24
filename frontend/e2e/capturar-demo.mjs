@@ -1,0 +1,23 @@
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+await page.goto('http://localhost:4200/login');
+await page.getByLabel('Usuário').fill('comprador');
+await page.getByLabel('Senha').fill('comprador-demo-123');
+await page.getByRole('button', { name: /entrar/i }).click();
+await page.waitForURL(/catalogo/);
+await page.screenshot({ path: 'demo-video/01-catalogo.png', fullPage: true });
+await page.goto('http://localhost:4200/perfil');
+await page.getByRole('tab', { name: 'Minhas propostas e histórico' }).waitFor();
+await page.screenshot({ path: 'demo-video/02-perfil-com-negociacoes.png', fullPage: true });
+const vendedor = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+await vendedor.goto('http://localhost:4200/login');
+await vendedor.getByLabel('Usuário').fill('vendedor');
+await vendedor.getByLabel('Senha').fill('vendedor-demo-123');
+await vendedor.getByRole('button', { name: /entrar/i }).click();
+await vendedor.waitForURL(/catalogo/);
+await vendedor.goto('http://localhost:4200/perfil');
+await vendedor.getByRole('tab', { name: 'Meus lotes anunciados' }).click();
+await vendedor.screenshot({ path: 'demo-video/03-lotes-do-vendedor.png', fullPage: true });
+await browser.close();
