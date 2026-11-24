@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 /** Categorias semânticas de alerta exibidas pelo componente de toast. */
 export type TipoNotificacao = 'sucesso' | 'aviso' | 'erro' | 'info';
@@ -28,12 +29,29 @@ export class NotificationService {
   private readonly notificacoesSubject = new Subject<Notificacao[]>();
   private readonly _notificacoes = signal<readonly Notificacao[]>([]);
   private readonly temporizadores = new Map<number, ReturnType<typeof setTimeout>>();
+  private canalAbort: AbortController | null = null;
+  private reconexao: ReturnType<typeof setTimeout> | null = null;
 
   /** Lista reativa (signals) consumida pelo componente de toast. */
   readonly notificacoes = this._notificacoes.asReadonly();
 
   /** Lista observável, para consumidores baseados em RxJS. */
   readonly notificacoes$: Observable<Notificacao[]> = this.notificacoesSubject.asObservable();
+
+  conectarTempoReal(): void {
+    if (this.canalAbort || typeof fetch === 'undefined') return;
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    this.canalAbort = new AbortController();
+    void this.escutarCanal(token, this.canalAbort.signal);
+  }
+
+  desconectarTempoReal(): void {
+    this.canalAbort?.abort();
+    this.canalAbort = null;
+    if (this.reconexao) clearTimeout(this.reconexao);
+    this.reconexao = null;
+  }
 
   sucesso(mensagem: string, duracaoMs = DURACAO_PADRAO_MS): number {
     return this.publicar('sucesso', mensagem, duracaoMs);
@@ -91,5 +109,36 @@ export class NotificationService {
       );
     }
     return id;
+  }
+
+  private async escutarCanal(token: string, signal: AbortSignal): Promise<void> {
+    try {
+      const resposta = await fetch(`${environment.apiUrl}/notificacoes/stream`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'text/event-stream' }, signal,
+      });
+      if (!resposta.ok || !resposta.body) throw new Error('stream indisponível');
+      const reader = resposta.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (!signal.aborted) {
+        const parte = await reader.read();
+        if (parte.done) break;
+        buffer += decoder.decode(parte.value, { stream: true });
+        const eventos = buffer.split('\n\n');
+        buffer = eventos.pop() ?? '';
+        for (const evento of eventos) {
+          const linha = evento.split('\n').find((item) => item.startsWith('data:'));
+          if (!linha) continue;
+          try {
+            const payload = JSON.parse(linha.slice(5).trim()) as { mensagem?: string };
+            if (payload.mensagem) this.info(payload.mensagem);
+          } catch { /* ignora heartbeat ou payload inválido */ }
+        }
+      }
+    } catch { /* abort e indisponibilidade são tratados pela reconexão */ }
+    if (!signal.aborted) {
+      this.canalAbort = null;
+      this.reconexao = setTimeout(() => this.conectarTempoReal(), 5000);
+    }
   }
 }

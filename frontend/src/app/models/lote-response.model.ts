@@ -7,6 +7,7 @@ export interface LoteResponse {
   tipoTecido: TipoTecido;
   pesoKg: number;
   metragemAproximada: number | null;
+  precoBaseKg?: number | null;
   corPredominante: string;
   descricao: string | null;
   fotosUrls: string | null;

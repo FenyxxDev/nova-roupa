@@ -1,0 +1,6 @@
+# Autenticação contra o diretório institucional. Combine com prod (SPRING_PROFILES_ACTIVE=prod,ldap)
+# em ambientes implantados; a sonda LDAP do Actuator só fica ativa neste profile.
+management:
+  health:
+    ldap:
+      enabled: true

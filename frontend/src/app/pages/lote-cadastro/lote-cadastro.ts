@@ -84,6 +84,8 @@ export class LoteCadastro {
   readonly enviando = signal(false);
   /** Erro devolvido pelo backend ou pela rede. */
   readonly erroEnvio = signal<string | null>(null);
+  readonly loteCriadoId = signal<number | null>(null);
+  readonly enviandoFotos = signal(false);
   private fotosSelecionadas: readonly FotoSelecionada[] = [];
 
   fotosAlteradas(fotos: readonly FotoSelecionada[]): void {
@@ -123,14 +125,8 @@ export class LoteCadastro {
             this.finalizarPublicacao(lote.id);
             return;
           }
-          this.servico.enviarFotos(lote.id, arquivos).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: () => this.finalizarPublicacao(lote.id),
-            error: () => {
-              this.enviando.set(false);
-              this.erroEnvio.set('O lote foi criado, mas o envio das fotos falhou. Tente novamente no detalhe do lote.');
-              this.notificacoes.aviso('Lote publicado; o envio das fotos precisa de uma nova tentativa.');
-            },
-          });
+          this.loteCriadoId.set(lote.id);
+          this.enviarFotosDoLote(lote.id, arquivos);
         },
         error: (falha: HttpErrorResponse) => {
           this.enviando.set(false);
@@ -138,6 +134,39 @@ export class LoteCadastro {
           this.notificacoes.erro('Não foi possível publicar o lote.');
         },
       });
+  }
+
+  tentarEnviarFotos(): void {
+    const id = this.loteCriadoId();
+    if (id !== null && this.fotosSelecionadas.length > 0) {
+      this.enviarFotosDoLote(id, this.fotosSelecionadas.map((foto) => foto.arquivo));
+    }
+  }
+
+  private enviarFotosDoLote(id: number, arquivos: readonly File[]): void {
+    if (this.enviandoFotos()) return;
+    this.enviandoFotos.set(true); this.enviando.set(true);
+    this.servico.buscarPorId(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (lote) => {
+        const persistidas = (lote.fotosUrls ?? '').split(',').map((url) => url.trim()).filter(Boolean);
+        if (persistidas.length >= arquivos.length) {
+          this.enviandoFotos.set(false); this.finalizarPublicacao(id); return;
+        }
+        this.enviarArquivos(id, arquivos);
+      },
+      error: () => this.enviarArquivos(id, arquivos),
+    });
+  }
+
+  private enviarArquivos(id: number, arquivos: readonly File[]): void {
+    this.servico.enviarFotos(id, arquivos).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => { this.enviandoFotos.set(false); this.finalizarPublicacao(id); },
+      error: () => {
+        this.enviandoFotos.set(false); this.enviando.set(false);
+        this.erroEnvio.set('O lote foi criado, mas o envio das fotos falhou. Tente novamente sem recriar o lote.');
+        this.notificacoes.aviso('Envio das fotos pendente. Você pode tentar novamente.');
+      },
+    });
   }
 
   /** Converte o formulário no corpo aceito por `POST /api/lotes`. */
@@ -157,6 +186,7 @@ export class LoteCadastro {
 
   private finalizarPublicacao(id: number): void {
     this.enviando.set(false);
+    this.loteCriadoId.set(null);
     this.notificacoes.sucesso(`Lote #${id} publicado com sucesso.`);
     void this.router.navigate(['/catalogo']);
   }

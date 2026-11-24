@@ -12,6 +12,10 @@ import {
   rotuloStatusProposta,
 } from '../../models/proposta.model';
 import { PropostaService } from '../../services/proposta.service';
+import { LoteRetalhoService } from '../../services/lote-retalho.service';
+import { LoteResponse } from '../../models/lote-response.model';
+import { LoteCadastro } from '../../models/lote-cadastro.model';
+import { NotificationService } from '../../services/notification.service';
 
 type AbaPerfil = 'negociacoes' | 'lotes';
 type FiltroNegociacao = 'ativas' | 'concluidas' | 'todas';
@@ -28,6 +32,8 @@ export class Perfil {
   private readonly propostasApi = inject(PropostaService);
   private readonly avaliacoesApi = inject(AvaliacaoService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly lotesApi = inject(LoteRetalhoService);
+  private readonly notificacoes = inject(NotificationService);
 
   readonly sessao = computed(() => this.autenticacao.sessao());
   readonly username = computed(() => this.sessao()?.username || 'Usuário autenticado');
@@ -46,6 +52,13 @@ export class Perfil {
   readonly avaliadasNestaSessao = signal<readonly number[]>([]);
   readonly resultadoAvaliacao = signal<Readonly<Record<number, string>>>({});
   readonly opcoesNota = [1, 2, 3, 4, 5] as const;
+  readonly lotes = signal<readonly LoteResponse[]>([]);
+  readonly carregandoLotes = signal(false);
+  readonly erroLotes = signal<string | null>(null);
+  readonly loteEditando = signal<number | null>(null);
+  readonly salvandoLote = signal(false);
+  readonly encerrandoLote = signal<number | null>(null);
+  readonly edicao = signal<Partial<LoteCadastro>>({});
 
   /** Combina as propostas autorizadas ao papel da sessão, sem duplicar registros. */
   readonly historico = computed(() => {
@@ -84,6 +97,46 @@ export class Perfil {
 
   constructor() {
     this.carregar();
+    if (this.podeVerRecebidas()) this.carregarLotes();
+  }
+
+  carregarLotes(): void {
+    this.carregandoLotes.set(true); this.erroLotes.set(null);
+    this.lotesApi.meus().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (pagina) => { this.lotes.set(pagina.content); this.carregandoLotes.set(false); },
+      error: () => { this.erroLotes.set('Não foi possível carregar seus anúncios.'); this.carregandoLotes.set(false); },
+    });
+  }
+
+  iniciarEdicao(lote: LoteResponse): void {
+    this.loteEditando.set(lote.id);
+    this.edicao.set({ tipoTecido: lote.tipoTecido, pesoKg: lote.pesoKg, metragemAproximada: lote.metragemAproximada ?? undefined,
+      precoBaseKg: lote.precoBaseKg ?? undefined, corPredominante: lote.corPredominante, descricao: lote.descricao ?? undefined, localizacao: lote.localizacao });
+  }
+
+  cancelarEdicao(): void { this.loteEditando.set(null); this.edicao.set({}); }
+
+  alterarEdicao(campo: keyof LoteCadastro, evento: Event): void {
+    const valor = (evento.target as HTMLInputElement | HTMLTextAreaElement).value;
+    this.edicao.update((atual) => ({ ...atual, [campo]: ['pesoKg', 'metragemAproximada', 'precoBaseKg'].includes(campo) ? (valor ? Number(valor) : undefined) : valor }));
+  }
+
+  salvarEdicao(id: number): void {
+    if (this.salvandoLote()) return;
+    this.salvandoLote.set(true);
+    this.lotesApi.atualizar(id, this.edicao()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (lote) => { this.lotes.update((lista) => lista.map((item) => item.id === id ? lote : item)); this.salvandoLote.set(false); this.cancelarEdicao(); this.notificacoes.sucesso('Anúncio atualizado.'); },
+      error: () => { this.salvandoLote.set(false); this.notificacoes.erro('Não foi possível atualizar o anúncio.'); },
+    });
+  }
+
+  encerrarLote(lote: LoteResponse): void {
+    if (this.encerrandoLote() !== null || !confirm('Encerrar este anúncio? Essa ação não pode ser desfeita.')) return;
+    this.encerrandoLote.set(lote.id);
+    this.lotesApi.encerrar(lote.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (atualizado) => { this.lotes.update((lista) => lista.map((item) => item.id === lote.id ? atualizado : item)); this.encerrandoLote.set(null); this.notificacoes.sucesso('Anúncio encerrado.'); },
+      error: () => { this.encerrandoLote.set(null); this.notificacoes.erro('Não foi possível encerrar o anúncio.'); },
+    });
   }
 
   carregar(): void {

@@ -9,6 +9,11 @@
 
   @if (erroEnvio(); as mensagem) {
     <p class="aviso aviso--erro" role="alert">{{ mensagem }}</p>
+    @if (loteCriadoId() !== null) {
+      <button type="button" class="botao botao--secundario" (click)="tentarEnviarFotos()" [disabled]="enviandoFotos()">
+        {{ enviandoFotos() ? 'Enviando fotos…' : 'Tentar enviar fotos novamente' }}
+      </button>
+    }
   }
 
   <form class="cartao cadastro__formulario" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Toast } from './components/toast/toast';
 import { AuthService } from './services/auth.service';
@@ -24,6 +24,13 @@ export class App {
   readonly podePublicar = computed(() => this.auth.isVendedor());
   readonly menuAberto = signal(false);
   readonly anoAtual = new Date().getFullYear();
+
+  constructor() {
+    effect(() => {
+      if (this.autenticado()) this.notificacoes.conectarTempoReal();
+      else this.notificacoes.desconectarTempoReal();
+    });
+  }
 
   alternarMenu(): void {
     this.menuAberto.update((aberto) => !aberto);

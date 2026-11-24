@@ -58,24 +58,29 @@
   </div>
 
   @if (aba() === 'lotes') {
-    <section
-      id="painel-lotes"
-      class="cartao perfil__indisponivel"
-      role="tabpanel"
-      aria-labelledby="aba-lotes"
-    >
-      <span class="perfil__aviso-icone" aria-hidden="true">i</span>
-      <div>
-        <h2 class="cartao__titulo">Lista de lotes ainda indisponível</h2>
-        <p class="texto-suave">
-          O catálogo da API não permite filtrar lotes pelo vendedor autenticado. Para não mostrar
-          lotes de outras pessoas como seus, esta lista só poderá ser ativada quando o backend
-          oferecer uma consulta de lotes do usuário.
-        </p>
-        @if (papeis().includes('ROLE_VENDEDOR') || papeis().includes('ROLE_ADMIN')) {
-          <a class="botao botao--primario" routerLink="/lotes/novo">Publicar um lote</a>
-        } @else {
-          <a class="botao botao--secundario" routerLink="/catalogo">Explorar o catálogo</a>
+    <section id="painel-lotes" role="tabpanel" aria-labelledby="aba-lotes">
+      @if (erroLotes(); as mensagem) { <div class="aviso aviso--erro" role="alert"><p>{{ mensagem }}</p><button type="button" class="botao botao--secundario" (click)="carregarLotes()">Tentar novamente</button></div> }
+      @if (carregandoLotes()) { <div class="cartao perfil__vazio" role="status">Carregando seus anúncios…</div> }
+      @if (!carregandoLotes() && lotes().length === 0 && !erroLotes()) {
+        <div class="cartao perfil__vazio"><h2 class="cartao__titulo">Você ainda não publicou lotes</h2><p class="texto-suave">Publique um excedente e conecte-se a novos parceiros.</p><a class="botao botao--primario" routerLink="/lotes/novo">Publicar um lote</a></div>
+      }
+      <div class="perfil__lista">
+        @for (lote of lotes(); track lote.id) {
+          <article class="cartao perfil__negociacao">
+            <header class="perfil__negociacao-topo"><div><p class="texto-pequeno texto-suave">Lote #{{ lote.id }} · {{ lote.localizacao }}</p><h2 class="cartao__titulo">{{ rotuloPapel(lote.tipoTecido) }} · {{ lote.corPredominante }}</h2></div><span class="selo selo--neutro">{{ lote.status }}</span></header>
+            @if (loteEditando() === lote.id) {
+              <div class="grade grade--2">
+                <label class="campo">Peso (kg)<input type="number" min="1" [value]="edicao().pesoKg ?? ''" (input)="alterarEdicao('pesoKg', $event)"></label>
+                <label class="campo">Preço/kg<input type="number" min="0.01" step="0.01" [value]="edicao().precoBaseKg ?? ''" (input)="alterarEdicao('precoBaseKg', $event)"></label>
+                <label class="campo">Cor<input type="text" maxlength="60" [value]="edicao().corPredominante ?? ''" (input)="alterarEdicao('corPredominante', $event)"></label>
+                <label class="campo">Localização<input type="text" maxlength="120" [value]="edicao().localizacao ?? ''" (input)="alterarEdicao('localizacao', $event)"></label>
+              </div>
+              <div class="linha espaco-entre"><button type="button" class="botao botao--secundario" (click)="cancelarEdicao()">Cancelar</button><button type="button" class="botao botao--primario" [disabled]="salvandoLote()" (click)="salvarEdicao(lote.id)">{{ salvandoLote() ? 'Salvando…' : 'Salvar alterações' }}</button></div>
+            } @else {
+              <dl class="perfil__dados"><div><dt>Peso</dt><dd>{{ lote.pesoKg }} kg</dd></div><div><dt>Descrição</dt><dd>{{ lote.descricao || 'Sem descrição' }}</dd></div></dl>
+              @if (lote.status !== 'FINALIZADO') { <div class="linha"><button type="button" class="botao botao--secundario" (click)="iniciarEdicao(lote)">Editar anúncio</button><button type="button" class="botao botao--perigo" [disabled]="encerrandoLote() === lote.id" (click)="encerrarLote(lote)">{{ encerrandoLote() === lote.id ? 'Encerrando…' : 'Encerrar anúncio' }}</button></div> }
+            }
+          </article>
         }
       </div>
     </section>

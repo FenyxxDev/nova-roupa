@@ -85,6 +85,14 @@ export class LoteRetalhoService {
     return this.http.put<LoteResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
+  meus(page = 0, size = 12): Observable<Page<LoteResponse>> {
+    return this.http.get<Page<LoteResponse>>(`${this.apiUrl}/meus`, { params: { page, size } });
+  }
+
+  encerrar(id: number | string): Observable<LoteResponse> {
+    return this.http.patch<LoteResponse>(`${this.apiUrl}/${id}/encerrar`, {});
+  }
+
   /** Remove um lote. */
   deletar(id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
